@@ -1,4 +1,6 @@
 .clangd
 .venv
 
+compile_commands.json
+
 *.o
