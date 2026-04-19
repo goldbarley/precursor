@@ -16,12 +16,12 @@ int main(void)
     w.x = 10;
     w.y = 10;
 
-    uint32_t r = prc_create_window(&w);
+    uint32_t r = prc_create_window(&w, PRC_ALIGN_BOTTOMRIGHT);
     mvprintw(0, 0, "%d\n", r);
 
     prc_window_title(
         &w, "This title", 4, 5,
-        PRC_ALIGN_BOTTOMRIGHT
+        PRC_ALIGN_TOP
     );
 
     refresh();

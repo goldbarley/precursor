@@ -1,14 +1,25 @@
 #include "prc/prc_window.h"
-#include "utlprc/types.h"
 
 #include <string.h>
 
-fnresult_t prc_create_window(struct prc_window *window)
+fnresult_t prc_create_window(struct prc_window *window, enum prc_align align)
 {
     if (window == NULL)
         return FN_INVALID_ARGUMENT;
 
-    window->win = newwin(window->height, window->width, window->y, window->x);
+    uint32_t ay;
+    uint32_t ax;
+
+    uint32_t res =
+        prc_get_walginyx(stdscr, window->height, window->width, align, &ay, &ax);
+
+    if (res == FN_FAILURE)
+        return FN_FAILURE;
+    else if (res == FN_NO_ARGS)
+        window->win = newwin(window->height, window->width, window->y, window->x);         
+    else
+        window->win = newwin(window->height, window->width, ay, ax);
+
     if (window->win == NULL)
         return FN_FAILURE;
 
@@ -76,7 +87,6 @@ fnresult_t prc_get_talginyx(
     getmaxyx(win, wmy, wmx);
 
     uint32_t my = wmy - 1;
-    uint32_t mx = wmx - 1;
 
     switch(align)
     {
@@ -87,70 +97,134 @@ fnresult_t prc_get_talginyx(
             break;
         
         case PRC_ALIGN_TOP:
-        {
             *y = 0;
             *x = (wmx >> 1) - (tl >> 1);
             
             break;
-        }
 
         case PRC_ALIGN_TOPRIGHT:
-        {
-            *y = 0; 
+           *y = 0; 
             *x = wmx - tl;
 
             break;
-        }
 
         case PRC_ALIGN_LEFT:
-        {
             *y = wmy >> 1;
             *x = 0;
 
             break;
-        }
 
         case PRC_ALIGN_CENTRE:
-        {
 
             *y = wmy >> 1;
             *x = (wmx >> 1) - (tl >> 1);
 
             break;
-        }
 
         case PRC_ALIGN_RIGHT:
-        {
 
             *y = wmy >> 1;
             *x = wmx - tl;
 
             break;
-        }
 
         case PRC_ALIGN_BOTTOMLEFT:
-        {
             *y = my;
             *x = 0;
 
             break;
-        }
 
         case PRC_ALIGN_BOTTOM:
-        {
+
             *y = my;
             *x = (wmx >> 1) - (tl >> 1);
 
             break;
-        }
 
         case PRC_ALIGN_BOTTOMRIGHT:
-        {
             *y = my;
             *x = wmx - tl;
 
             break;
-        }
+
+        default:
+            return FN_NO_ARGS;
+    }
+
+    return FN_SUCCESS;
+}
+
+fnresult_t prc_get_walginyx(
+    WINDOW *        basewin,
+    uint32_t        height,
+    uint32_t        width,
+    enum prc_align  align,
+    uint32_t *      y,
+    uint32_t *      x
+)
+{
+    if (basewin == NULL || y == NULL || x == NULL)
+        return FN_INVALID_ARGUMENT;
+
+    uint32_t bmy;
+    uint32_t bmx;
+    getmaxyx(basewin, bmy, bmx);
+
+    switch(align)
+    {
+        case PRC_ALIGN_TOPLEFT:
+            *y = 0;
+            *x = 0;
+
+            break;
+
+        case PRC_ALIGN_TOP:
+            *y = 0;
+            *x = (bmx >> 1) - (width >> 1);
+
+            break;
+
+        case PRC_ALIGN_TOPRIGHT:
+            *y = 0;
+            *x = bmx - width;
+
+            break;
+
+        case PRC_ALIGN_LEFT:
+            *y = (bmy >> 1) - (height >> 1);
+            *x = 0;
+
+            break;
+
+        case PRC_ALIGN_CENTRE:
+            *y = (bmy >> 1) - (height >> 1);
+            *x = (bmx >> 1) - (width >> 1);
+
+            break;
+
+        case PRC_ALIGN_RIGHT:
+            *y = (bmy >> 1) - (height >> 1);
+            *x = bmx - width;
+
+            break;
+
+        case PRC_ALIGN_BOTTOMLEFT:
+            *y = bmy - height;
+            *x = 0;
+
+            break;
+
+        case PRC_ALIGN_BOTTOM:
+            *y = bmy - height;
+            *x = (bmx >> 1) - (width >> 1);
+
+            break;
+
+        case PRC_ALIGN_BOTTOMRIGHT:
+            *y = bmy - height;
+            *x = bmx - width;
+
+            break;
 
         default:
             return FN_NO_ARGS;

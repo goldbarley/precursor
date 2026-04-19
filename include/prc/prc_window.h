@@ -31,7 +31,8 @@ struct prc_window
 };
 
 fnresult_t prc_create_window(
-    struct prc_window *window
+    struct prc_window * window,
+    enum prc_align      align
 );
 
 void prc_destroy_window(
@@ -55,7 +56,7 @@ fnresult_t prc_get_talginyx(
 );
 
 fnresult_t prc_get_walginyx(
-    WINDOW *        win,
+    WINDOW *        basewin,
     uint32_t        height,
     uint32_t        width,
     enum prc_align  align,
