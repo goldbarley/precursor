@@ -9,19 +9,26 @@
 
 struct prc_border_desc
 {
-    int32_t ls;
-    int32_t rs;
-    int32_t ts;
-    int32_t bs;
-    int32_t tl;
-    int32_t tr;
-    int32_t bl;
-    int32_t br;
+    uint32_t ls;
+    uint32_t rs;
+    uint32_t ts;
+    uint32_t bs;
+    uint32_t tl;
+    uint32_t tr;
+    uint32_t bl;
+    uint32_t br;
+};
+
+struct prc_pad_desc
+{
+    uint32_t left;
+    uint32_t right;
+    uint32_t top;
+    uint32_t bottom;
 };
 
 struct prc_window
 {
-    struct prc_border_desc *border;
     WINDOW *                win;
     uint32_t                height;
     uint32_t                width;
@@ -31,8 +38,10 @@ struct prc_window
 };
 
 fnresult_t prc_create_window(
-    struct prc_window * window,
-    enum prc_align      align
+    struct prc_window *     window,
+    struct prc_border_desc *border,
+    struct prc_pad_desc *   pad,
+    enum prc_align          align
 );
 
 void prc_destroy_window(
@@ -48,7 +57,7 @@ fnresult_t prc_window_title(
 );
 
 fnresult_t prc_get_talginyx(
-    WINDOW *            win,
+    WINDOW *restrict    win,
     uint32_t            tl,
     enum prc_align      align,
     uint32_t *          y,
@@ -56,12 +65,18 @@ fnresult_t prc_get_talginyx(
 );
 
 fnresult_t prc_get_walginyx(
-    WINDOW *        basewin,
-    uint32_t        height,
-    uint32_t        width,
-    enum prc_align  align,
-    uint32_t *      y,
-    uint32_t *      x
+    WINDOW *restrict    basewin,
+    uint32_t            height,
+    uint32_t            width,
+    enum prc_align      align,
+    uint32_t *          y,
+    uint32_t *          x
+);
+
+fnresult_t prc_get_padded_wdesc(
+    struct prc_window *     window,
+    WINDOW *restrict        basewin,
+    struct prc_pad_desc *   pad
 );
 
 #endif /* PRC_WINDOW_H */
