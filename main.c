@@ -20,7 +20,8 @@ int main(void)
     mvprintw(0, 0, "%d\n", r);
 
     prc_window_title(
-        &w, "This title", 4, 5, PRC_ALIGN_NONE
+        &w, "This title", 4, 5,
+        PRC_ALIGN_BOTTOMRIGHT
     );
 
     refresh();

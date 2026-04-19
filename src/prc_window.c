@@ -40,43 +40,120 @@ fnresult_t prc_window_title(
     const char *                title,
     const uint32_t              y,
     const uint32_t              x,
-    const uint8_t               align
+    enum prc_align              align
 )
 {
     if (window == NULL || title == NULL)
         return FN_INVALID_ARGUMENT;
 
+    uint32_t ty;
+    uint32_t tx;
+
+    if (prc_get_talginyx(window->win, strlen(title), align, &ty, &tx)
+        == FN_NO_ARGS)
+    {
+        mvwaddstr(window->win, y, x, title);
+        return FN_SUCCESS;
+    }
+
+    mvwaddstr(window->win, ty, tx, title);
+    return FN_SUCCESS;
+}
+
+fnresult_t prc_get_talginyx(
+    WINDOW *            win,
+    uint32_t            tl,
+    enum prc_align      align,
+    uint32_t *          y,
+    uint32_t *          x
+)
+{
+    if (win == NULL || y == NULL || x == NULL)
+        return FN_INVALID_ARGUMENT;
+
+    uint32_t wmy;
+    uint32_t wmx;
+    getmaxyx(win, wmy, wmx);
+
+    uint32_t my = wmy - 1;
+    uint32_t mx = wmx - 1;
+
     switch(align)
     {
-        case PRC_ALIGN_LEFT:
-            mvwaddstr(window->win, 0, 1, title);
+        case PRC_ALIGN_TOPLEFT:
+            *y = 0;
+            *x = 0;
+
             break;
         
+        case PRC_ALIGN_TOP:
+        {
+            *y = 0;
+            *x = (wmx >> 1) - (tl >> 1);
+            
+            break;
+        }
+
+        case PRC_ALIGN_TOPRIGHT:
+        {
+            *y = 0; 
+            *x = wmx - tl;
+
+            break;
+        }
+
+        case PRC_ALIGN_LEFT:
+        {
+            *y = wmy >> 1;
+            *x = 0;
+
+            break;
+        }
+
         case PRC_ALIGN_CENTRE:
         {
-            __attribute__((__unused__)) uint32_t wmy; 
-            uint32_t wmx;
-            getmaxyx(window->win, wmy, wmx);
 
-            uint32_t tl = strlen(title);
-            mvwaddstr(window->win, 0, (wmx >> 1) - (tl >> 1), title);
+            *y = wmy >> 1;
+            *x = (wmx >> 1) - (tl >> 1);
+
             break;
         }
 
         case PRC_ALIGN_RIGHT:
         {
-            __attribute__((__unused__)) uint32_t wmy;
-            uint32_t wmx;
-            getmaxyx(window->win, wmy, wmx);
-            
-            uint32_t tl = strlen(title);
-            mvwaddstr(window->win, 0, wmx - tl - 1, title);
+
+            *y = wmy >> 1;
+            *x = wmx - tl;
+
+            break;
+        }
+
+        case PRC_ALIGN_BOTTOMLEFT:
+        {
+            *y = my;
+            *x = 0;
+
+            break;
+        }
+
+        case PRC_ALIGN_BOTTOM:
+        {
+            *y = my;
+            *x = (wmx >> 1) - (tl >> 1);
+
+            break;
+        }
+
+        case PRC_ALIGN_BOTTOMRIGHT:
+        {
+            *y = my;
+            *x = wmx - tl;
+
             break;
         }
 
         default:
-            mvwaddstr(window->win, y, x, title);
-            break;
+            return FN_NO_ARGS;
     }
 
     return FN_SUCCESS;

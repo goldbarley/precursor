@@ -7,11 +7,6 @@
 
 #include <stdint.h>
 
-#define PRC_ALIGN_LEFT (108U)
-#define PRC_ALIGN_CENTRE (99U)
-#define PRC_ALIGN_RIGHT (114U)
-#define PRC_ALIGN_NONE (0U)
-
 struct prc_border_desc
 {
     int32_t ls;
@@ -32,6 +27,7 @@ struct prc_window
     uint32_t                width;
     uint32_t                x;
     uint32_t                y;
+    uint8_t                 align;
 };
 
 fnresult_t prc_create_window(
@@ -47,7 +43,24 @@ fnresult_t prc_window_title(
     const char *                title,
     const uint32_t              y,
     const uint32_t              x,
-    const uint8_t               align
+    enum prc_align              align
+);
+
+fnresult_t prc_get_talginyx(
+    WINDOW *            win,
+    uint32_t            tl,
+    enum prc_align      align,
+    uint32_t *          y,
+    uint32_t *          x
+);
+
+fnresult_t prc_get_walginyx(
+    WINDOW *        win,
+    uint32_t        height,
+    uint32_t        width,
+    enum prc_align  align,
+    uint32_t *      y,
+    uint32_t *      x
 );
 
 #endif /* PRC_WINDOW_H */

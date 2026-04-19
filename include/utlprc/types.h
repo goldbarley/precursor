@@ -1,11 +1,25 @@
 #ifndef PRC_TYPES_H
 #define PRC_TYPES_H
 
+enum prc_align{
+    PRC_ALIGN_NONE,
+    PRC_ALIGN_TOPLEFT,
+    PRC_ALIGN_TOP,
+    PRC_ALIGN_TOPRIGHT,
+    PRC_ALIGN_LEFT,
+    PRC_ALIGN_CENTRE,
+    PRC_ALIGN_RIGHT,
+    PRC_ALIGN_BOTTOMLEFT,
+    PRC_ALIGN_BOTTOM,
+    PRC_ALIGN_BOTTOMRIGHT
+};
+
 typedef enum fnresult
 {
     FN_SUCCESS,
     FN_FAILURE,
-    FN_INVALID_ARGUMENT
+    FN_INVALID_ARGUMENT,
+    FN_NO_ARGS
 } fnresult_t;
 
 #endif /* PRC_TYPES_H */
