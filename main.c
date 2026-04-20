@@ -7,6 +7,11 @@ int main(void)
 
     initscr();
 
+#ifdef PRC_ECHO
+    if (!PRC_ECHO)
+        noecho();
+#endif /* ECHO */
+
     struct prc_border_desc b = {0};
     
     struct prc_window w = {0};
@@ -16,12 +21,12 @@ int main(void)
     w.y = 10;
 
     struct prc_pad_desc pad = {0};
-    pad.left = 10;
-    pad.right = 10;
-    pad.top = 5;
-    pad.bottom = 5;
+    pad.left = 20;
+    pad.right = 20;
+    pad.top = 10;
+    pad.bottom = 10;
 
-    uint32_t r = prc_create_window(&w, &b, &pad, PRC_ALIGN_BOTTOMRIGHT);
+    uint32_t r = prc_create_window(&w, &b, NULL, PRC_ALIGN_BOTTOMRIGHT);
     mvprintw(0, 0, "%d\n", r);
 
     prc_window_title(
