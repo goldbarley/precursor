@@ -3,6 +3,7 @@
 
 #include <ncurses.h>
 
+#include "prc/prc_context.h"
 #include "utlprc/types.h"
 
 #include <stdint.h>
@@ -41,7 +42,8 @@ fnresult_t prc_create_window(
     struct prc_window *     window,
     struct prc_border_desc *border,
     struct prc_pad_desc *   pad,
-    enum prc_align          align
+    enum prc_align          align,
+    struct prc_context *    ctx
 );
 
 void prc_destroy_window(
@@ -49,7 +51,7 @@ void prc_destroy_window(
 );
 
 fnresult_t prc_window_title(
-    const struct prc_window *   window,
+    struct prc_window *         window,
     const char *                title,
     const uint32_t              y,
     const uint32_t              x,
@@ -57,26 +59,26 @@ fnresult_t prc_window_title(
 );
 
 fnresult_t prc_get_talginyx(
-    WINDOW *restrict    win,
-    uint32_t            tl,
-    enum prc_align      align,
-    uint32_t *          y,
-    uint32_t *          x
+    struct prc_window *restrict     win,
+    uint32_t                        tl,
+    enum prc_align                  align,
+    uint32_t *                      y,
+    uint32_t *                      x
 );
 
 fnresult_t prc_get_walginyx(
-    WINDOW *restrict    basewin,
-    uint32_t            height,
-    uint32_t            width,
-    enum prc_align      align,
-    uint32_t *          y,
-    uint32_t *          x
+    struct prc_context *restrict    basewin,
+    uint32_t                        height,
+    uint32_t                        width,
+    enum prc_align                  align,
+    uint32_t *                      y,
+    uint32_t *                      x
 );
 
 fnresult_t prc_get_padded_wdesc(
-    struct prc_window *     window,
-    WINDOW *restrict        basewin,
-    struct prc_pad_desc *   pad
+    struct prc_window *             window,
+    struct prc_context *restrict    basewin,
+    struct prc_pad_desc *           pad
 );
 
 #endif /* PRC_WINDOW_H */

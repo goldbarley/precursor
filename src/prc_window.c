@@ -8,7 +8,8 @@ fnresult_t prc_create_window(
     struct prc_window *     window,
     struct prc_border_desc *border,
     struct prc_pad_desc *   pad,
-    enum prc_align          align
+    enum prc_align          align,
+    struct prc_context *    ctx
 )
 {
     if (window == NULL)
@@ -20,7 +21,7 @@ fnresult_t prc_create_window(
     if (pad == NULL)
     {
         uint32_t res =
-            prc_get_walginyx(stdscr, window->height, window->width, align, &ay, &ax);
+            prc_get_walginyx(ctx, window->height, window->width, align, &ay, &ax);
 
         if (res == FN_FAILURE)
             return FN_FAILURE;
@@ -32,13 +33,15 @@ fnresult_t prc_create_window(
     }
     else
     {
-        if (prc_get_padded_wdesc(window, stdscr, pad) != FN_SUCCESS)
+        if (prc_get_padded_wdesc(window, ctx, pad) != FN_SUCCESS)
             return FN_FAILURE;
     }
 
     window->win = newwin(window->height, window->width, window->y, window->x);
     if (window->win == NULL)
         return FN_FAILURE;
+
+    ctx->fwin = window;
 
     if (border == NULL)
         return FN_SUCCESS;
@@ -64,7 +67,7 @@ void prc_destroy_window(struct prc_window *window)
 }
 
 fnresult_t prc_window_title(
-    const struct prc_window *   window,
+    struct prc_window *         window,
     const char *                title,
     const uint32_t              y,
     const uint32_t              x,
@@ -77,7 +80,7 @@ fnresult_t prc_window_title(
     uint32_t ty;
     uint32_t tx;
 
-    if (prc_get_talginyx(window->win, strlen(title), align, &ty, &tx)
+    if (prc_get_talginyx(window, strlen(title), align, &ty, &tx)
         == FN_NO_ARGS)
     {
         mvwaddstr(window->win, y, x, title);
@@ -89,19 +92,19 @@ fnresult_t prc_window_title(
 }
 
 fnresult_t prc_get_talginyx(
-    WINDOW *restrict    win,
-    uint32_t            tl,
-    enum prc_align      align,
-    uint32_t *          y,
-    uint32_t *          x
+    struct prc_window *restrict     window,
+    uint32_t                        tl,
+    enum prc_align                  align,
+    uint32_t *                      y,
+    uint32_t *                      x
 )
 {
-    if (win == NULL || y == NULL || x == NULL)
+    if (window == NULL || y == NULL || x == NULL)
         return FN_INVALID_ARGUMENT;
 
     uint32_t wmy;
     uint32_t wmx;
-    getmaxyx(win, wmy, wmx);
+    getmaxyx(window->win, wmy, wmx);
 
     uint32_t my = wmy - 1;
 
@@ -172,12 +175,12 @@ fnresult_t prc_get_talginyx(
 }
 
 fnresult_t prc_get_walginyx(
-    WINDOW *restrict    basewin,
-    uint32_t            height,
-    uint32_t            width,
-    enum prc_align      align,
-    uint32_t *          y,
-    uint32_t *          x
+    struct prc_context *restrict    basewin,
+    uint32_t                        height,
+    uint32_t                        width,
+    enum prc_align                  align,
+    uint32_t *                      y,
+    uint32_t *                      x
 )
 {
     if (basewin == NULL || y == NULL || x == NULL)
@@ -185,7 +188,7 @@ fnresult_t prc_get_walginyx(
 
     uint32_t bmy;
     uint32_t bmx;
-    getmaxyx(basewin, bmy, bmx);
+    getmaxyx(basewin->cwin, bmy, bmx);
 
     switch(align)
     {
@@ -251,29 +254,30 @@ fnresult_t prc_get_walginyx(
 }
 
 fnresult_t prc_get_padded_wdesc(
-    struct prc_window *     window,
-    WINDOW *restrict        basewin,
-    struct prc_pad_desc *   pad
+    struct prc_window *             window,
+    struct prc_context *restrict    basewin,
+    struct prc_pad_desc *           pad
 )
 {
     if (window == NULL || basewin == NULL || pad == NULL)
         return FN_INVALID_ARGUMENT;
 
+    const WINDOW *cwin = basewin->cwin;
+    const uint32_t pl = pad->left;
+    const uint32_t pr = pad->right;
+    const uint32_t pt = pad->top;
+    const uint32_t pb = pad->bottom;
     uint32_t wh;
     uint32_t ww;
-    uint32_t pl = pad->left;
-    uint32_t pr = pad->right;
-    uint32_t pt = pad->top;
-    uint32_t pb = pad->bottom;
 
-    getmaxyx(basewin, wh, ww);
+    getmaxyx(cwin, wh, ww);
     if (ww <= (pl + pr) || wh <= (pt + pb))
         return FN_FAILURE;
 
-    window->x = (uint32_t) getbegx(basewin) + pl;
+    window->x = (uint32_t) getbegx(cwin) + pl;
     ww -= pl + pr;
 
-    window->y = (uint32_t) getbegy(basewin) + pt;
+    window->y = (uint32_t) getbegy(cwin) + pt;
     wh -= pt + pb;
 
     window->height = wh;

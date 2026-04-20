@@ -26,7 +26,10 @@ int main(void)
     pad.top = 10;
     pad.bottom = 10;
 
-    uint32_t r = prc_create_window(&w, &b, NULL, PRC_ALIGN_BOTTOMRIGHT);
+    struct prc_context ctx;
+    prc_get_term_info(&ctx);
+
+    uint32_t r = prc_create_window(&w, &b, NULL, PRC_ALIGN_TOP, &ctx);
     mvprintw(0, 0, "%d\n", r);
 
     prc_window_title(
