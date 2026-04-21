@@ -137,7 +137,7 @@ fnresult_t prc_get_walginyx(
     uint32_t bmx;
     getmaxyx(basewin->cwin, bmy, bmx);
 
-    if (width > bmx && height >> bmy)
+    if (width > bmx && height > bmy)
         return FN_FAILURE;
 
     if (align == PRC_ALIGN_NONE)
