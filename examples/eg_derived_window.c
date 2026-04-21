@@ -20,27 +20,23 @@ fnresult_t eg_create_derwin(
     prc_get_context(ctx);
 
     /* Create base window or select 'stdscr'. */
+    static struct prc_border_desc _this_bb = {0};
+    static struct prc_pad_desc _this_bp = {
+        .left = 10,
+        .right = 10,
+        .top = 5,
+        .bottom = 5
+    };
+
     struct prc_border_desc *this_bb = NULL;
     struct prc_pad_desc *this_bp = NULL;
     enum prc_align ba = PRC_ALIGN_NONE;
 
-    if (bborder)
-    {
-        struct prc_border_desc _this_bb = {0};
+    if (bborder) 
         this_bb = &_this_bb;
-    }
     
     if (bpad)
-    {
-        struct prc_pad_desc _this_bp = {
-            .left = 10,
-            .right = 10,
-            .top = 5,
-            .bottom = 5
-        };
-
         this_bp = &_this_bp;
-    }
 
     if (balign)
         ba = PRC_ALIGN_TOPLEFT;
@@ -55,8 +51,8 @@ fnresult_t eg_create_derwin(
     puts("Info: Base window created.");
 
     /* Create dervied window */
-    struct prc_border_desc _this_db = {0};
-    struct prc_pad_desc _this_dp = {
+    static struct prc_border_desc _this_db = {0};
+    static struct prc_pad_desc _this_dp = {
         .left = 3,
         .right = 3,
         .top = 2,

@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -Wextra -std=c11 -MMD -MP
+CFLAGS := -Wall -Wextra -Wpedantic -std=c11 -MMD -MP
 LFLAGS := -lncurses
 INC_FLAGS := -Iinclude
 SRC_FILES = main.c $(wildcard src/*.c)
