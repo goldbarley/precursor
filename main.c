@@ -29,7 +29,7 @@ int main(void)
     struct prc_context ctx;
     prc_get_term_info(&ctx);
 
-    enum prc_align align = PRC_ALIGN_TOPRIGHT;
+    enum prc_align align = PRC_ALIGN_NONE;
 
     uint32_t r = prc_create_window(&w, &b, NULL,
          align, &ctx);

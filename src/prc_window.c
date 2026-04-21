@@ -15,21 +15,14 @@ fnresult_t prc_create_window(
     if (window == NULL)
         return FN_INVALID_ARGUMENT;
 
-    uint32_t ay;
-    uint32_t ax;
-
     if (pad == NULL)
     {
         uint32_t res =
-            prc_get_walginyx(ctx, window->height, window->width, align, &ay, &ax);
+            prc_get_walginyx(ctx, window->height, window->width,
+                align, &window->y, &window->x);
 
         if (res == FN_FAILURE)
             return FN_FAILURE;
-        else if (res == FN_SUCCESS)
-        {
-            window->y = ay;
-            window->x = ax;
-        }
     }
     else
     {
