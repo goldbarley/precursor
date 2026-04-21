@@ -108,68 +108,22 @@ fnresult_t prc_get_talginyx(
 
     uint32_t my = wmy - 1;
 
-    switch(align)
-    {
-        case PRC_ALIGN_TOPLEFT:
-            *y = 0;
-            *x = 0;
+    if (align == PRC_ALIGN_NONE)
+        return FN_NO_ARGS;
 
-            break;
-        
-        case PRC_ALIGN_TOP:
-            *y = 0;
-            *x = (wmx >> 1) - (tl >> 1);
-            
-            break;
+    if (align & PRC_ALIGN_TOP)
+        *y = 0;
+    else if (align & PRC_ALIGN_BOTTOM)
+        *y = my;
+    else
+        *y = wmy >> 1;
 
-        case PRC_ALIGN_TOPRIGHT:
-           *y = 0; 
-            *x = wmx - tl;
-
-            break;
-
-        case PRC_ALIGN_LEFT:
-            *y = wmy >> 1;
-            *x = 0;
-
-            break;
-
-        case PRC_ALIGN_CENTRE:
-
-            *y = wmy >> 1;
-            *x = (wmx >> 1) - (tl >> 1);
-
-            break;
-
-        case PRC_ALIGN_RIGHT:
-
-            *y = wmy >> 1;
-            *x = wmx - tl;
-
-            break;
-
-        case PRC_ALIGN_BOTTOMLEFT:
-            *y = my;
-            *x = 0;
-
-            break;
-
-        case PRC_ALIGN_BOTTOM:
-
-            *y = my;
-            *x = (wmx >> 1) - (tl >> 1);
-
-            break;
-
-        case PRC_ALIGN_BOTTOMRIGHT:
-            *y = my;
-            *x = wmx - tl;
-
-            break;
-
-        default:
-            return FN_NO_ARGS;
-    }
+    if (align & PRC_ALIGN_LEFT)
+        *x = 0;
+    else if (align & PRC_ALIGN_RIGHT)
+        *x = wmx - tl;
+    else
+        *x = (wmx - tl) >> 1;
 
     return FN_SUCCESS;
 }
@@ -190,65 +144,25 @@ fnresult_t prc_get_walginyx(
     uint32_t bmx;
     getmaxyx(basewin->cwin, bmy, bmx);
 
-    switch(align)
-    {
-        case PRC_ALIGN_TOPLEFT:
-            *y = 0;
-            *x = 0;
+    if (width > bmx && height >> bmy)
+        return FN_FAILURE;
 
-            break;
+    if (align == PRC_ALIGN_NONE)
+        return FN_NO_ARGS;
 
-        case PRC_ALIGN_TOP:
-            *y = 0;
-            *x = (bmx >> 1) - (width >> 1);
+    if (align & PRC_ALIGN_TOP)
+        *y = 0;
+    else if (align & PRC_ALIGN_BOTTOM)
+        *y = bmy - height;
+    else
+        *y = (bmy - height) >> 1;
 
-            break;
-
-        case PRC_ALIGN_TOPRIGHT:
-            *y = 0;
-            *x = bmx - width;
-
-            break;
-
-        case PRC_ALIGN_LEFT:
-            *y = (bmy >> 1) - (height >> 1);
-            *x = 0;
-
-            break;
-
-        case PRC_ALIGN_CENTRE:
-            *y = (bmy >> 1) - (height >> 1);
-            *x = (bmx >> 1) - (width >> 1);
-
-            break;
-
-        case PRC_ALIGN_RIGHT:
-            *y = (bmy >> 1) - (height >> 1);
-            *x = bmx - width;
-
-            break;
-
-        case PRC_ALIGN_BOTTOMLEFT:
-            *y = bmy - height;
-            *x = 0;
-
-            break;
-
-        case PRC_ALIGN_BOTTOM:
-            *y = bmy - height;
-            *x = (bmx >> 1) - (width >> 1);
-
-            break;
-
-        case PRC_ALIGN_BOTTOMRIGHT:
-            *y = bmy - height;
-            *x = bmx - width;
-
-            break;
-
-        default:
-            return FN_NO_ARGS;
-    }
+    if (align & PRC_ALIGN_LEFT)
+        *x = 0;
+    else if (align & PRC_ALIGN_RIGHT)
+        *x = bmx - width;
+    else
+        *x = (bmx - width) >> 1;
 
     return FN_SUCCESS;
 }

@@ -29,7 +29,10 @@ int main(void)
     struct prc_context ctx;
     prc_get_term_info(&ctx);
 
-    uint32_t r = prc_create_window(&w, &b, NULL, PRC_ALIGN_TOP, &ctx);
+    enum prc_align align = PRC_ALIGN_TOPRIGHT;
+
+    uint32_t r = prc_create_window(&w, &b, NULL,
+         align, &ctx);
     mvprintw(0, 0, "%d\n", r);
 
     prc_window_title(
