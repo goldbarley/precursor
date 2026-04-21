@@ -1,56 +1,44 @@
+#include "eg.h"
 #include "prc/prc_window.h"
-#include <locale.h>
 
 int main(void)
 {
-    setlocale(LC_ALL, "");
-
     initscr();
 
-#ifdef PRC_ECHO
-    if (!PRC_ECHO)
-        noecho();
+    struct prc_context ctx;
+    struct prc_window window;
+    struct prc_window dwindow = {0};
+    dwindow.height = 2;
+    dwindow.width = 2;
+#ifdef ECHO
+    if (!ECHO)
+        noecho()
 #endif /* ECHO */
 
-    struct prc_border_desc b = {0};
-    
-    struct prc_window w = {0};
-    w.height = 10;
-    w.width = 20;
-    w.x = 10;
-    w.y = 10;
+    fnresult_t result = eg_create_derwin(&window, &dwindow, &ctx,
+        1, 1, 0, 1, 1, 0);
+    // fnresult_t result = eg_single_window(&window, &ctx, 1, 0, 1);
+    if (result != FN_SUCCESS)
+    {
+        puts("Debug: Example failed.");
 
-    struct prc_pad_desc pad = {0};
-    pad.left = 20;
-    pad.right = 20;
-    pad.top = 10;
-    pad.bottom = 10;
-
-    struct prc_context ctx;
-    prc_get_term_info(&ctx);
-
-    enum prc_align align = PRC_ALIGN_NONE;
-
-    uint32_t r = prc_create_window(&w, &b, NULL,
-         align, &ctx);
-    mvprintw(0, 0, "%d\n", r);
-
-    prc_window_title(
-        &w, "This title", 4, 5,
-        PRC_ALIGN_TOP
-    );
-
+        return 0;
+    }
     refresh();
-    wrefresh(w.win);
 
-    char c;
+    uint8_t c;
     do
     {
-        c = getch();
-        refresh();
-    } while(c != 'Q' && c != 'q');
+        wmove(window.win, 1, 1);
+        c = wgetch(window.win);
+    } while (c != 'q' && c != 'Q');
 
-    prc_destroy_window(&w);
+    puts("Debug: Example succeeded.");
+
+    prc_destroy_window(&dwindow, &ctx);
+    prc_destroy_window(&window, &ctx);
 
     endwin();
+
+    return 0;
 }

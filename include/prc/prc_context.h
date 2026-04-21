@@ -10,15 +10,37 @@
 
 struct prc_context
 {
-    WINDOW *            cwin;
+    struct prc_window * cwin;
     struct prc_window * fwin;
+    struct prc_window * pwin;
     uint32_t            term_y;
     uint32_t            term_x;
     bool                term_has_color;
     bool                term_change_color;
 };
 
-fnresult_t prc_get_term_info(
+fnresult_t prc_get_context(
+    struct prc_context *ctx
+);
+
+fnresult_t prc_change_context_focus(
+    struct prc_window * window,
+    struct prc_context *ctx
+);
+
+fnresult_t prc_chto_previous_focus(
+    struct prc_context *ctx
+);
+
+fnresult_t prc_resize_context(
+    struct prc_context *ctx
+);
+
+fnresult_t prc_change_mother(
+    struct prc_window *new_mom
+);
+
+fnresult_t prc_chto_focus_mother(
     struct prc_context *ctx
 );
 

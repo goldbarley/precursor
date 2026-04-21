@@ -2,13 +2,18 @@ CC := gcc
 CFLAGS := -Wall -Wextra -std=c11 -MMD -MP
 LFLAGS := -lncurses
 INC_FLAGS := -Iinclude
-SRC_FILES := main.c $(wildcard src/*.c)
+SRC_FILES = main.c $(wildcard src/*.c)
 BUILD_DIR := build
 TARGET := $(BUILD_DIR)/main
 
 OPTIM_LVL ?= 0
 ECHO ?= 0
+EXAMPLES ?= 1
 CFLAGS += -O$(OPTIM_LVL) -DPRC_ECHO=$(ECHO)
+ifeq ($(EXAMPLES), 1)
+	CFLAGS += -Iexamples -DINCLUDE_EXAMPLES
+	SRC_FILES += $(wildcard examples/*.c)
+endif
 
 OBJ_FILES := $(SRC_FILES:%.c=$(BUILD_DIR)/%.o)
 DEPEND := $(OBJ_FILES:.o=.d)
