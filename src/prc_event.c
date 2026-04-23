@@ -17,10 +17,11 @@ void _prc_init_evt_buffer(void)
         return;
 
     _event_buffer.head = 0;
+    _event_buffer.tail = 0;
     _event_buffer.init = TRUE;
 }
 
-fnresult_t prc_update_evt_buffer(void)
+fnresult_t prc_use_event(void)
 {
     if (((_event_buffer.head + 1) & (PRC_MAX_EVENT_COUNT - 1))
         == _event_buffer.tail)
@@ -82,7 +83,8 @@ fnresult_t prc_get_last_event(struct prc_generic_event *evt)
     if (evt == NULL)
         return FN_INVALID_ARGUMENT;
 
-    *evt = _event_buffer.buffer[_event_buffer.head];
+    *evt = _event_buffer.buffer[
+        (_event_buffer.head - 1) & (PRC_MAX_EVENT_COUNT - 1)];
 
     return FN_SUCCESS;
 }
