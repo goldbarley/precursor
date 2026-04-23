@@ -13,10 +13,10 @@ struct prc_context
     struct prc_window * cwin;
     struct prc_window * fwin;
     struct prc_window * pwin;
+    bool                term_change_color;
     uint32_t            term_y;
     uint32_t            term_x;
     bool                term_has_color;
-    bool                term_change_color;
 };
 
 fnresult_t prc_get_context(

@@ -1,4 +1,5 @@
 #include <ncurses.h>
+#include <menu.h>
 
 #include "prc/prc_context.h"
 #include "prc/prc_window.h"
@@ -17,7 +18,7 @@ static struct _prc_mother_info _mother = {
     .init = false
 };
 
-void _prc_init_mother()
+void _prc_init_mother(void)
 {
     if (_mother.init)
         return;
@@ -92,7 +93,8 @@ fnresult_t prc_resize_context(struct prc_context *ctx)
     return FN_SUCCESS;
 }
 
-fnresult_t _prc_change_mother(struct prc_window *new_mom)
+__attribute__((__unused__))
+static fnresult_t _prc_change_mother(struct prc_window *new_mom)
 {
     if (new_mom == NULL)
         return FN_INVALID_ARGUMENT;
@@ -137,7 +139,7 @@ void prc_destroy_context(struct prc_context *ctx)
     }
 }
 
-void prc_kill_mother()
+void prc_kill_mother(void)
 {
     endwin();
 }
