@@ -6,14 +6,28 @@
 #include <stddef.h>
 
 /* Will cause segfault of mother is removed. */
-static struct prc_window _mother_win;
+struct _prc_mother_info
+{
+    struct prc_window mwin;
+    bool init;
+};
+
+static struct _prc_mother_info _mother = {
+    .mwin = {0},
+    .init = false
+};
 
 void _prc_init_mother()
 {
-    _mother_win.win = stdscr;
-    getmaxyx(_mother_win.win, _mother_win.height, _mother_win.width);
-    _mother_win.y = 0;
-    _mother_win.x = 0;
+    if (_mother.init)
+        return;
+
+    _mother.mwin.win = initscr();
+    getmaxyx(_mother.mwin.win, _mother.mwin.height, _mother.mwin.width);
+    _mother.mwin.y = 0;
+    _mother.mwin.x = 0;
+
+    _mother.init = true;
 }
 
 fnresult_t prc_get_context(struct prc_context *ctx)
@@ -23,11 +37,11 @@ fnresult_t prc_get_context(struct prc_context *ctx)
 
     _prc_init_mother();
 
-    ctx->cwin = &_mother_win;
-    ctx->fwin = &_mother_win;
+    ctx->cwin = &_mother.mwin;
+    ctx->fwin = &_mother.mwin;
     ctx->pwin = NULL;
-    ctx->term_y = _mother_win.height;
-    ctx->term_x = _mother_win.width;
+    ctx->term_y = _mother.mwin.height;
+    ctx->term_x = _mother.mwin.width;
 
     ctx->term_has_color = has_colors();
     ctx->term_change_color = can_change_color();
@@ -42,6 +56,9 @@ fnresult_t prc_change_context_focus(
 {
     if (window == NULL || ctx == NULL || window->win == NULL)
         return FN_INVALID_ARGUMENT;
+
+    if (window == ctx->fwin)
+        return FN_SUCCESS;
 
     ctx->pwin = ctx->fwin;
     ctx->fwin = window;
@@ -69,19 +86,19 @@ fnresult_t prc_resize_context(struct prc_context *ctx)
         return FN_INVALID_ARGUMENT;
 
     _prc_init_mother();
-    ctx->term_y = _mother_win.height;
-    ctx->term_x = _mother_win.width;
+    ctx->term_y = _mother.mwin.height;
+    ctx->term_x = _mother.mwin.width;
 
     return FN_SUCCESS;
 }
 
-fnresult_t prc_change_mother(struct prc_window *new_mom)
+fnresult_t _prc_change_mother(struct prc_window *new_mom)
 {
     if (new_mom == NULL)
         return FN_INVALID_ARGUMENT;
 
     /* Cheap fix. TODO: Change this later for a proper copy. */
-    _mother_win = *new_mom;
+    _mother.mwin = *new_mom;
 
     return FN_SUCCESS;
 }
@@ -91,7 +108,36 @@ fnresult_t prc_chto_focus_mother(struct prc_context *ctx)
     if (ctx == NULL)
         return FN_INVALID_ARGUMENT;
 
-    prc_change_context_focus(&_mother_win, ctx);
+    prc_change_context_focus(&_mother.mwin, ctx);
 
     return FN_SUCCESS;
+}
+
+void prc_destroy_context(struct prc_context *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    struct prc_window *target[3] = {
+        ctx->cwin,
+        ctx->fwin,
+        ctx->pwin
+    };
+
+    for (uint8_t i = 0; i < 3; ++i)
+    {
+        if (target[i] == NULL)
+            continue;
+
+        if (target[i] == &_mother.mwin)
+            continue;
+
+        prc_destroy_window(target[i], ctx);
+        
+    }
+}
+
+void prc_kill_mother()
+{
+    endwin();
 }

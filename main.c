@@ -3,8 +3,6 @@
 
 int main(void)
 {
-    initscr();
-
     struct prc_context ctx;
     struct prc_window window;
     struct prc_window dwindow = {0};

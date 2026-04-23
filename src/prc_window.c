@@ -136,7 +136,11 @@ void prc_destroy_window(
     if (window == NULL)
         return;
 
+    if (window->win == stdscr)
+        return;
+
     delwin(window->win);
+    window->win = NULL;
 
     if (ctx == NULL)
         return;

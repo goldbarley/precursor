@@ -1,6 +1,12 @@
 #ifndef PRC_TYPES_H
 #define PRC_TYPES_H
 
+#undef FALSE
+#define FALSE (0)
+
+#undef TRUE
+#define TRUE (1)
+
 typedef enum fnresult
 {
     FN_SUCCESS,

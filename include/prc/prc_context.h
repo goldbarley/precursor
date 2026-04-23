@@ -36,10 +36,6 @@ fnresult_t prc_resize_context(
     struct prc_context *ctx
 );
 
-fnresult_t prc_change_mother(
-    struct prc_window *new_mom
-);
-
 fnresult_t prc_chto_focus_mother(
     struct prc_context *ctx
 );
