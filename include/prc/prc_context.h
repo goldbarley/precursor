@@ -40,4 +40,10 @@ fnresult_t prc_chto_focus_mother(
     struct prc_context *ctx
 );
 
+void prc_destroy_context(
+    struct prc_context *ctx
+);
+
+void prc_kill_mother(void);
+
 #endif /* PRC_CONTEXT_H */

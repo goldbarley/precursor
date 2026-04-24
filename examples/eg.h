@@ -12,6 +12,8 @@ fnresult_t eg_single_window(
     bool                pad
 );
 
+fnresult_t eg_align_window(void);
+
 void eg_destroy_single_window(
     struct prc_window * win,
     struct prc_context *ctx
@@ -27,5 +29,9 @@ fnresult_t eg_create_derwin(
     bool bpad, bool dpad
 );
 
+/* eg_input_handling.c */
+fnresult_t eg_blocking_events(void);
+
+fnresult_t eg_polling_events(void);
 
 #endif /* PRC_EG_H */

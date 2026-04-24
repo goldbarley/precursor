@@ -12,7 +12,6 @@ struct prc_generic_event
 {
     enum prc_event_type type;
     uint32_t detail;
-    uint32_t status;
 };
 
 struct prc_event_buffer
@@ -30,6 +29,10 @@ fnresult_t prc_wait_for_event(
     struct prc_window *window
 );
 
+fnresult_t prc_poll_for_event(
+    struct prc_window *window
+);
+
 fnresult_t prc_get_first_event(
     struct prc_generic_event *evt
 );
@@ -37,5 +40,7 @@ fnresult_t prc_get_first_event(
 fnresult_t prc_get_last_event(
     struct prc_generic_event *evt
 );
+
+fnresult_t prc_use_event(void);
 
 #endif /* PRC_EVENT_H */

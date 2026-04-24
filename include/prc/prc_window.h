@@ -85,7 +85,7 @@ fnresult_t prc_get_talginyx(
 );
 
 fnresult_t prc_get_walginyx(
-    struct prc_context *restrict    basewin,
+    struct prc_window *             basewin,
     uint32_t                        height,
     uint32_t                        width,
     enum prc_align                  align,
@@ -95,7 +95,15 @@ fnresult_t prc_get_walginyx(
 
 fnresult_t prc_get_padded_wdesc(
     struct prc_window *             window,
-    struct prc_context *restrict    basewin,
+    struct prc_window *             basewin,
+    struct prc_pad_desc *           pad
+);
+
+fnresult_t prc_align_window(
+    struct prc_window *             window,
+    struct prc_window *             basewin,
+    struct prc_context *restrict    ctx,
+    enum prc_align                  align,
     struct prc_pad_desc *           pad
 );
 
