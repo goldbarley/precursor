@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-#define PRC_MAX_EVENT_COUNT (256U)
+#define PRC_MAX_EVENT_COUNT (32U)
 
 struct prc_generic_event
 {
