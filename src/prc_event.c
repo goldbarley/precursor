@@ -11,7 +11,7 @@ struct _prc_event_buffer
 
 static struct _prc_event_buffer _event_buffer;
 
-void _prc_init_evt_buffer(void)
+void prc_init_evt_buffer(void)
 {
     if (_event_buffer.init)
         return;
@@ -98,6 +98,9 @@ fnresult_t prc_get_first_event(struct prc_generic_event *evt)
 {
     if (evt == NULL)
         return FN_INVALID_ARGUMENT;
+
+    if (_event_buffer.head == _event_buffer.tail)
+        return FN_NO_ARGS;
 
     *evt = _event_buffer.buffer[_event_buffer.tail];
 

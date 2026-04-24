@@ -23,7 +23,7 @@ struct prc_event_buffer
 typedef struct prc_generic_event prc_key_press_event_t;
 typedef struct prc_generic_event prc_button_press_event_t;
 
-fnresult_t prc_update_evt_buffer(void);
+void prc_init_evt_buffer(void);
 
 fnresult_t prc_wait_for_event(
     struct prc_window *window

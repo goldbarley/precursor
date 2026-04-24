@@ -34,4 +34,7 @@ fnresult_t eg_blocking_events(void);
 
 fnresult_t eg_polling_events(void);
 
+/* eg_text_box.c */
+fnresult_t eg_text_box(void);
+
 #endif /* PRC_EG_H */

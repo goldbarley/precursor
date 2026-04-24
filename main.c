@@ -2,7 +2,7 @@
 
 int main(void)
 {
-    fnresult_t result = eg_align_window();
+    fnresult_t result = eg_text_box();
     if (result != FN_SUCCESS)
     {
         puts("Debug: Example failed.");
