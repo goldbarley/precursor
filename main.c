@@ -2,7 +2,7 @@
 
 int main(void)
 {
-    fnresult_t result = eg_text_box();
+    fnresult_t result = eg_resize_window();
     if (result != FN_SUCCESS)
     {
         puts("Debug: Example failed.");

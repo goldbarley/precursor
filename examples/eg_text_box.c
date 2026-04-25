@@ -1,33 +1,44 @@
 #include "prc/prc_event.h"
-#define _XOPEN_SOURCE 500
+
+#include <signal.h>
+#include <string.h>
+
+static uint8_t _prc_sigwinch = FALSE;
+
+void _eg_signal_handler(int signal)
+{
+    (void) signal;
+    _prc_sigwinch = TRUE;
+}
 
 fnresult_t eg_text_box(void)
 {
-    struct prc_window window;
+struct prc_window *window;
     struct prc_context ctx;
 
     prc_get_context(&ctx);
+    signal(SIGWINCH, _eg_signal_handler);
     noecho();
     raw();
 
-    struct prc_border_desc border = {0};
-    struct prc_pad_desc pad = {
-        .left = 10,
-        .right = 10,
-        .top = 5,
-        .bottom = 5
-    };
-
-    enum prc_align align = PRC_ALIGN_NONE;
-
-    if (prc_create_window(&window, &border, &pad,
-            align, &ctx) != FN_SUCCESS)
+    if (prc_create_window(&window, &ctx) != FN_SUCCESS)
     {
         printf("Error: Failed to create window.");
         return FN_FAILURE;
     }
-    prc_window_title(&window, "Example: Input Handling",
+    prc_window_title(window, "Example: Input Handling",
         0, 0, PRC_ALIGN_TOP, &ctx);
+
+    if (memset(&window->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
+        return FN_FAILURE;
+    
+    window->wpad.left = 10;
+    window->wpad.right = 10;
+    window->wpad.top = 5;
+    window->wpad.bottom = 5;
+
+    window->walign = PRC_ALIGN_NONE;
+
     refresh();
 
     prc_init_evt_buffer();
@@ -38,13 +49,29 @@ fnresult_t eg_text_box(void)
     uint32_t wy = 1;
     uint32_t wx = 1;
 
-    if (nodelay(window.win, TRUE) != OK)
+    if (nodelay(window->win, TRUE) != OK)
         return FN_FAILURE;
 
     while (TRUE)
     {
+        if (_prc_sigwinch) {
+            _prc_sigwinch = FALSE;
+            
+            resizeterm(0, 0); 
+            prc_resize_context(&ctx);
+            prc_resize_window(window, &ctx);
+            
+            prc_window_title(window, "Example: Input Handling", 0, 0, PRC_ALIGN_TOP, &ctx);
+            
+            if (wy >= window->height - 1) wy = window->height - 2;
+            if (wx >= window->width - 1) wx = window->width - 2;
 
-        if (prc_poll_for_event(&window) != FN_SUCCESS)
+            clearok(stdscr, TRUE);
+            refresh();
+            wrefresh(window->win);
+        }
+
+        if (prc_poll_for_event(window) != FN_SUCCESS)
         {
             res = FN_FAILURE;
             break;
@@ -65,26 +92,27 @@ fnresult_t eg_text_box(void)
             }
             else 
             {
-                if (wx >= window.width - 1)
+                if (wx >= window->width - 1)
                 {
                     wx = 1;
                     wy++;
                 }
 
-                if (wy >= window.height - 1) 
+                if (wy >= window->height - 1) 
                     break;
 
-                mvwaddch(window.win, wy, wx++, fevt.detail);
+                mvwaddch(window->win, wy, wx++, fevt.detail);
             }
 
             prc_use_event();
         }
 
-        wrefresh(window.win);
-        wtimeout(window.win, 10);
+        wrefresh(window->win);
+        wtimeout(window->win, 10);
     }
 
     cleanup:
+        prc_destroy_window(window, &ctx);
         prc_destroy_context(&ctx);
         prc_kill_mother();
 

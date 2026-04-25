@@ -1,6 +1,6 @@
-#include "prc/prc_event.h"
+#include "prc/prc_context.h"
 #include "prc/prc_window.h"
-#include "utlprc/types.h"
+#include "prc/prc_event.h"
 
 #include <signal.h>
 #include <string.h>
@@ -13,10 +13,9 @@ void _eg_signal_handler(int signal)
     _prc_sigwinch = TRUE;
 }
 
-fnresult_t eg_create_derwin(void)
+fnresult_t eg_resize_window(void)
 {
     struct prc_window *window;
-    struct prc_window *dwindow;
     struct prc_context ctx;
 
     prc_get_context(&ctx);
@@ -39,30 +38,8 @@ fnresult_t eg_create_derwin(void)
     window->wpad.right = 10;
     window->wpad.top = 5;
     window->wpad.bottom = 5;
-    window->wpad.yes = TRUE;
 
     window->walign = PRC_ALIGN_NONE;
-
-    if (prc_draw_window_border(window) != FN_SUCCESS)
-        return FN_FAILURE;
-
-    if (prc_create_window(&dwindow, 
-        5, 5, 0, 0,&ctx) != FN_SUCCESS)
-    {
-        printf("Error: Failed to create window.");
-        return FN_FAILURE;
-    }
-
-    if (memset(&dwindow->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
-        return FN_FAILURE;
-    
-    dwindow->wpad.left = 5;
-    dwindow->wpad.right = 5;
-    dwindow->wpad.top = 2;
-    dwindow->wpad.bottom = 2;
-    dwindow->wpad.yes = FALSE;
-
-    dwindow->walign = PRC_ALIGN_BOTTOM;
 
     refresh();
 

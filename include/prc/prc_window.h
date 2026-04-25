@@ -26,35 +26,49 @@ struct prc_pad_desc
     uint16_t right;
     uint16_t top;
     uint16_t bottom;
-    uint16_t  yes;
+    uint16_t yes;
 };
 
 struct prc_window
 {
     WINDOW *                win;
     struct prc_window *     parent;
+    char *                  title;
+    enum prc_align          talign;
+    enum prc_align          walign;
+    struct prc_pad_desc     wpad;
+    struct prc_border_desc  wbord;
     uint16_t                height;
     uint16_t                width;
     uint16_t                y;
     uint16_t                x;
-    enum prc_align          align;
-    struct prc_border_desc  wbord;
-    struct prc_pad_desc     wpad;
 };
 
 fnresult_t prc_create_window(
     struct prc_window **    window,
+    uint16_t                height,
+    uint16_t                width,
+    uint16_t                y,
+    uint16_t                x,
     struct prc_context *    ctx
 );
 
 fnresult_t prc_create_focused_derwin(
     struct prc_window **    window,
+    uint16_t                height,
+    uint16_t                width,
+    uint16_t                y,
+    uint16_t                x,
     struct prc_context *    ctx
 );
 
 fnresult_t prc_create_derwin(
     struct prc_window **    window,
     struct prc_window *     parent,
+    uint16_t                height,
+    uint16_t                width,
+    uint16_t                y,
+    uint16_t                x,
     struct prc_context *    ctx
 );
 
@@ -63,13 +77,17 @@ void prc_destroy_window(
     struct prc_context *ctx
 );
 
+fnresult_t prc_draw_window_border(
+    struct prc_window *window
+);
+
 fnresult_t prc_window_title(
-    struct prc_window *         window,
-    const char *                title,
-    const uint16_t              y,
-    const uint16_t              x,
-    enum prc_align              align,
-    struct prc_context *        ctx
+    struct prc_window *             window,
+    const char *                    title,
+    const uint16_t                  y,
+    const uint16_t                  x,
+    enum prc_align                  align,
+    struct prc_context *restrict    ctx
 );
 
 fnresult_t prc_get_talginyx(
@@ -103,7 +121,7 @@ fnresult_t prc_align_window(
     struct prc_pad_desc *           pad
 );
 
-fnresult_t prc_redraw_window(
+fnresult_t prc_resize_window(
     struct prc_window *window,
     struct prc_context *restrict ctx
 );

@@ -19,7 +19,7 @@ static inline fnresult_t _prc_get_window_info(
     {
         uint32_t res =
             prc_get_walginyx(window->parent, window->height, window->width,
-                window->align, &window->y, &window->x);
+                window->walign, &window->y, &window->x);
 
         if (res == FN_FAILURE)
             return FN_FAILURE;
@@ -33,20 +33,21 @@ static inline fnresult_t _prc_get_window_info(
     return FN_SUCCESS;
 }
 
-static inline fnresult_t _prc_draw_window_border(
-    struct prc_window *window,
-    struct prc_border_desc *border
+fnresult_t prc_draw_window_border(
+    struct prc_window *window
 )
 {
-    if (border == NULL || window == NULL)
+    if (window == NULL)
         return FN_SUCCESS;
+
+    struct prc_border_desc *bord = &window->wbord;
 
     if (wborder(
         window->win,
-        border->ls, border->rs,
-        border->ts, border->bs,
-        border->tl, border->tr,
-        border->bl, border->br
+        bord->ls, bord->rs,
+        bord->ts, bord->bs,
+        bord->tl, bord->tr,
+        bord->bl, bord->br
     ) != OK)
     {
         delwin(window->win);
@@ -58,6 +59,10 @@ static inline fnresult_t _prc_draw_window_border(
 
 fnresult_t prc_create_window(
     struct prc_window **    window,
+    uint16_t                height,
+    uint16_t                width,
+    uint16_t                y,
+    uint16_t                x,
     struct prc_context *    ctx
 )
 {
@@ -69,6 +74,10 @@ fnresult_t prc_create_window(
         return FN_OUT_OF_MEMORY;
 
     winaddr->parent = ctx->cwin;
+    winaddr->height = height;
+    winaddr->width = width;
+    winaddr->y = y;
+    winaddr->x = x;
 
     if (_prc_get_window_info(winaddr, ctx)
         != FN_SUCCESS)
@@ -81,7 +90,7 @@ fnresult_t prc_create_window(
     if (prc_change_context_focus(winaddr, ctx) != FN_SUCCESS)
         return FN_FAILURE;
 
-    if (_prc_draw_window_border(winaddr, &winaddr->wbord)
+    if (prc_draw_window_border(winaddr)
         != FN_SUCCESS)
         return FN_FAILURE;
 
@@ -92,37 +101,26 @@ fnresult_t prc_create_window(
 
 fnresult_t prc_create_focused_derwin(
     struct prc_window **    window,
+    uint16_t                height,
+    uint16_t                width,
+    uint16_t                y,
+    uint16_t                x,
     struct prc_context *    ctx
 )
 {
     if (window == NULL || ctx == NULL)
         return FN_INVALID_ARGUMENT;
 
-    struct prc_window *winaddr = prc_get_freeaddr();
-
-    if (_prc_get_window_info(winaddr, ctx) != FN_SUCCESS)
-        return FN_FAILURE;
-
-    winaddr->parent = ctx->fwin;
-
-    winaddr->win =
-        derwin(winaddr->parent->win, 
-            winaddr->height, winaddr->width, winaddr->y, winaddr->x);
-    
-    prc_change_context_focus(winaddr, ctx);
-
-    if(_prc_draw_window_border(winaddr, &winaddr->wbord)
-        != FN_SUCCESS)
-        return FN_FAILURE;
-
-    *window = winaddr;
-
-    return FN_SUCCESS;
+    return prc_create_derwin(window, ctx->fwin, height, width, y, x, ctx);
 }
 
 fnresult_t prc_create_derwin(
     struct prc_window **    window,
     struct prc_window *     parent,
+    uint16_t                height,
+    uint16_t                width,
+    uint16_t                y,
+    uint16_t                x,
     struct prc_context *    ctx
 )
 {
@@ -135,6 +133,10 @@ fnresult_t prc_create_derwin(
         return FN_FAILURE;
 
     winaddr->parent = parent;
+    winaddr->height = height;
+    winaddr->width = width;
+    winaddr->x = x;
+    winaddr->y = y;
     
     winaddr->win =
         derwin(winaddr->parent->win, 
@@ -143,7 +145,7 @@ fnresult_t prc_create_derwin(
     if (prc_change_context_focus(winaddr, ctx) != FN_SUCCESS)
             return FN_FAILURE;
 
-    if (_prc_draw_window_border(winaddr, &winaddr->wbord)
+    if (prc_draw_window_border(winaddr)
         != FN_SUCCESS)
         return FN_FAILURE;
 
@@ -177,12 +179,12 @@ void prc_destroy_window(
 }
 
 fnresult_t prc_window_title(
-    struct prc_window *         window,
-    const char *                title,
-    const uint16_t              y,
-    const uint16_t              x,
-    enum prc_align              align,
-    struct prc_context *        ctx
+    struct prc_window *             window,
+    const char *                    title,
+    const uint16_t                  y,
+    const uint16_t                  x,
+    enum prc_align                  align,
+    struct prc_context *restrict    ctx
 )
 {
     if (window == NULL || title == NULL)
@@ -368,7 +370,15 @@ fnresult_t prc_resize_window(
     if (mvwin(window->win, window->y, window->x) != OK)
         return FN_FAILURE;
 
-    werase(window->win);
+    if (werase(window->win) != OK)
+        return FN_FAILURE;
 
-    return _prc_draw_window_border(window, &window->wbord);
+    if (prc_draw_window_border(window) != FN_SUCCESS)
+        return FN_FAILURE;
+
+    if (prc_window_title(window, window->title, 0, 0, window->talign, ctx)
+        != FN_SUCCESS)
+        return FN_FAILURE;
+
+    return FN_SUCCESS;
 }

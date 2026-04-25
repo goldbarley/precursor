@@ -37,4 +37,7 @@ fnresult_t eg_polling_events(void);
 /* eg_text_box.c */
 fnresult_t eg_text_box(void);
 
+/* eg_resize_window.c */
+fnresult_t eg_resize_window(void);
+
 #endif /* PRC_EG_H */
