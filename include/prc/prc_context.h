@@ -46,4 +46,6 @@ void prc_destroy_context(
 
 void prc_kill_mother(void);
 
+// MAKE_FNPTR(fnresult_t, prc_resize_context, struct prc_context *)
+
 #endif /* PRC_CONTEXT_H */

@@ -31,6 +31,13 @@ void _prc_init_mother(void)
     _mother.init = true;
 }
 
+void _prc_resize_mother(void)
+{
+    getmaxyx(_mother.mwin.win, _mother.mwin.height, _mother.mwin.width);
+    _mother.mwin.y = 0;
+    _mother.mwin.x = 0;
+}
+
 fnresult_t prc_get_context(struct prc_context *ctx)
 {
     if (ctx == NULL)
@@ -86,7 +93,8 @@ fnresult_t prc_resize_context(struct prc_context *ctx)
     if (ctx == NULL)
         return FN_INVALID_ARGUMENT;
 
-    _prc_init_mother();
+    _prc_resize_mother();
+        
     ctx->term_y = _mother.mwin.height;
     ctx->term_x = _mother.mwin.width;
 

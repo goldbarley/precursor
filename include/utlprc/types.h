@@ -7,6 +7,9 @@
 #undef TRUE
 #define TRUE (1)
 
+#undef UINT32_MAX
+#define UINT32_MAX (4294967295U)
+
 typedef enum fnresult
 {
     FN_SUCCESS,
