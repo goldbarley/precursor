@@ -44,6 +44,14 @@ void prc_destroy_context(
     struct prc_context *ctx
 );
 
+fnresult_t prc_get_mother(
+    struct prc_window *mother
+);
+
+fnresult_t prc_get_grandmother(
+    struct prc_window *grandmother
+);
+
 void prc_kill_mother(void);
 
 // MAKE_FNPTR(fnresult_t, prc_resize_context, struct prc_context *)

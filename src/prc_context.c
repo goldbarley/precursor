@@ -3,8 +3,7 @@
 
 #include "prc/prc_context.h"
 #include "prc/prc_window.h"
-
-#include <stddef.h>
+#include "utlprc/types.h"
 
 /* Will cause segfault of mother is removed. */
 struct _prc_mother_info
@@ -15,7 +14,12 @@ struct _prc_mother_info
 
 static struct _prc_mother_info _mother = {
     .mwin = {0},
-    .init = false
+    .init = FALSE
+};
+
+static struct _prc_mother_info _grandmother = {
+    .mwin = {0},
+    .init = FALSE
 };
 
 void _prc_init_mother(void)
@@ -33,7 +37,7 @@ void _prc_init_mother(void)
 
 void _prc_resize_mother(void)
 {
-    resizeterm(0, 0);
+    _grandmother = _mother;
     getmaxyx(_mother.mwin.win, _mother.mwin.height, _mother.mwin.width);
     _mother.mwin.y = 0;
     _mother.mwin.x = 0;
@@ -146,6 +150,26 @@ void prc_destroy_context(struct prc_context *ctx)
         prc_destroy_window(target[i], ctx);
         
     }
+}
+
+fnresult_t prc_get_mother(struct prc_window *mother)
+{
+    if (mother == NULL)
+        return FN_INVALID_ARGUMENT;
+
+    *mother = _mother.mwin;
+
+    return FN_SUCCESS;
+}
+
+fnresult_t prc_get_grandmother(struct prc_window *grandmother)
+{
+    if (grandmother == NULL)
+        return FN_INVALID_ARGUMENT;
+
+    grandmother = &_grandmother.mwin;
+
+    return FN_SUCCESS;
 }
 
 void prc_kill_mother(void)

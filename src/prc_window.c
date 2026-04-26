@@ -14,12 +14,11 @@ static inline fnresult_t _prc_get_window_info(
     if (window == NULL)
         return FN_INVALID_ARGUMENT;
 
-    if (window->wpad.yes == 0)
+    if (window->wpad.yes == FALSE)
     {
         uint32_t res =
             prc_get_walginyx(window->parent, window->height, window->width,
                 window->walign, &window->y, &window->x);
-
         if (res == FN_FAILURE)
             return FN_FAILURE;
     }
@@ -222,7 +221,7 @@ fnresult_t prc_get_walginyx(
     uint32_t bmx;
     getmaxyx(basewin->win, bmy, bmx);
 
-    if (width > bmx && height > bmy)
+    if (width > bmx || height > bmy)
         return FN_FAILURE;
 
     if (align == PRC_ALIGN_NONE)
@@ -292,7 +291,7 @@ fnresult_t prc_align_window(
     if (window == NULL)
         return FN_INVALID_ARGUMENT;
 
-    if (pad->yes == 0)
+    if (pad->yes == FALSE)
     {
         uint32_t res =
             prc_get_walginyx(basewin, window->height, window->width,
@@ -318,8 +317,12 @@ fnresult_t prc_resize_window(
     struct prc_context *restrict ctx
 )
 {
-    if (window == NULL || ctx == NULL)
+    if (window == NULL || ctx == NULL || window->win == stdscr)
         return FN_INVALID_ARGUMENT;
+
+    const struct prc_window mother = {0};
+    if (prc_get_mother((struct prc_window *) &mother) != FN_SUCCESS)
+        return FN_FAILURE;
 
     if (_prc_get_window_info(window) != FN_SUCCESS)
         return FN_FAILURE;
@@ -330,15 +333,9 @@ fnresult_t prc_resize_window(
     if (mvwin(window->win, window->y, window->x) != OK)
         return FN_FAILURE;
 
-    if (werase(window->win) != OK)
-        return FN_FAILURE;
-
-    if (prc_draw_window_border(window) != FN_SUCCESS)
-        return FN_FAILURE;
-
-    if (prc_window_title(window, 0, 0, ctx)
-        != FN_SUCCESS)
-        return FN_FAILURE;
+    werase(window->win);
+    prc_draw_window_border(window);
+    prc_window_title(window, 0, 0, ctx);
 
     return FN_SUCCESS;
 }

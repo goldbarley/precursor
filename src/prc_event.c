@@ -61,9 +61,6 @@ fnresult_t _prc_fill_evt_buffer(struct prc_window *window)
     int32_t c;
     while ((c = wgetch(window->win)) != ERR)
     {
-        if (c == KEY_RESIZE)
-            continue;
-
         if (_prc_allocto_evt_buffer(PRC_EVENT_KEY_PRESS, c)
             != FN_SUCCESS)
             break;

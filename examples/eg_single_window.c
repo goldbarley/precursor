@@ -1,26 +1,16 @@
+#include <ncurses.h>
+
 #include "prc/prc_context.h"
 #include "prc/prc_event.h"
 #include "prc/prc_window.h"
 #include "prc/prc_winpool.h"
 #include "utlprc/types.h"
 
-#include <signal.h>
-#include <ncurses.h>
 #include <string.h>
-
-static uint8_t _prc_sigwinch = FALSE;
-
-static void _eg_signal_handler(int signal)
-{
-    (void) signal;
-    _prc_sigwinch = TRUE;
-}
 
 fnresult_t eg_single_window(void)
 {
     fnresult_t result = FN_SUCCESS;
-
-    signal(SIGWINCH, _eg_signal_handler);
 
     struct prc_window *window = prc_get_freeaddr();
     if (window == NULL)
@@ -77,6 +67,13 @@ fnresult_t eg_single_window(void)
         goto cleanup;
     }
 
+    if (keypad(window->win, TRUE) != OK)
+    {
+        fputs("Error: keypad() failed.\n", stderr);
+        result = FN_FAILURE;
+        goto cleanup;
+    }
+
     result = prc_draw_window_border(window);
     if (result != FN_SUCCESS)
     {
@@ -91,52 +88,24 @@ fnresult_t eg_single_window(void)
         goto cleanup;
     }
 
+    refresh();
+    wrefresh(window->win);
+
     uint16_t wy = 1;
     uint16_t wx = 1;
 
     int16_t c = '\0';
     struct prc_generic_event fevt;
+    uint8_t resize_trgg = FALSE;
     do
     {
-        if (_prc_sigwinch) 
-        {
-
-            _prc_sigwinch = FALSE;
-            
-            prc_resize_context(&ctx);
-            prc_resize_window(window, &ctx);
-            
-            prc_draw_window_border(window);
-            prc_window_title(window, 0, 0, &ctx);
-            
-            if (wy >= window->height - 1) wy = window->height - 2;
-            if (wx >= window->width - 1) wx = window->width - 2;
-
-            clearok(stdscr, TRUE);
-            refresh();
-            wrefresh(window->win);
-        }
-
         prc_poll_for_event(window);
 
         while ((result = prc_get_first_event(&fevt)) == FN_SUCCESS)
         {
             c = fevt.detail;
             if (c == KEY_RESIZE)
-            {
-                prc_resize_context(&ctx);
-                prc_resize_window(window, &ctx);
-                
-                prc_draw_window_border(window);
-                prc_window_title(window, 0, 0, &ctx);
-                
-                if (wy >= window->height - 1) wy = window->height - 2;
-                if (wx >= window->width - 1) wx = window->width - 2;
-
-                clearok(stdscr, TRUE);
-                refresh();
-                wrefresh(window->win);
-            }
+                resize_trgg = TRUE;
 
             if (c == '\n' || c == '\r' || c == 10 || c == 13)
             {
@@ -165,6 +134,23 @@ fnresult_t eg_single_window(void)
             prc_use_event();
         }
 
+        if (resize_trgg)
+        {
+            prc_resize_context(&ctx);
+            prc_resize_window(window, &ctx);
+
+            clearok(stdscr, TRUE);
+            
+            if (wy >= window->height - 1)
+                wy = window->height - 2;
+
+            if (wx >= window->width - 1) 
+                wx = window->width - 2;
+            
+            refresh();
+            resize_trgg = FALSE;
+        }
+
         result = wnoutrefresh(window->win);
         if (result != OK)
         {
@@ -181,7 +167,7 @@ fnresult_t eg_single_window(void)
 
         wtimeout(window->win, 10);
     } while(c != 'Q' && c != 'q');
-
+        
     cleanup:
         prc_destroy_window(window, &ctx);
         prc_destroy_context(&ctx);
