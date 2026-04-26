@@ -1,11 +1,12 @@
 #include "prc/prc_event.h"
+#include "prc/prc_winpool.h"
 
 #include <signal.h>
 #include <string.h>
 
 static uint8_t _prc_sigwinch = FALSE;
 
-void _eg_signal_handler(int signal)
+static void _eg_signal_handler(int signal)
 {
     (void) signal;
     _prc_sigwinch = TRUE;
@@ -13,7 +14,7 @@ void _eg_signal_handler(int signal)
 
 fnresult_t eg_text_box(void)
 {
-struct prc_window *window;
+struct prc_window *window = prc_get_freeaddr();
     struct prc_context ctx;
 
     prc_get_context(&ctx);
@@ -21,13 +22,12 @@ struct prc_window *window;
     noecho();
     raw();
 
-    if (prc_create_window(&window, &ctx) != FN_SUCCESS)
+    if (prc_create_window(window, &ctx) != FN_SUCCESS)
     {
         printf("Error: Failed to create window.");
         return FN_FAILURE;
     }
-    prc_window_title(window, "Example: Input Handling",
-        0, 0, PRC_ALIGN_TOP, &ctx);
+    prc_window_title(window, 0, 0, &ctx);
 
     if (memset(&window->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
         return FN_FAILURE;
@@ -46,8 +46,8 @@ struct prc_window *window;
     struct prc_generic_event fevt = {0};
     
     fnresult_t res = FN_SUCCESS;
-    uint32_t wy = 1;
-    uint32_t wx = 1;
+    uint16_t wy = 1;
+    uint16_t wx = 1;
 
     if (nodelay(window->win, TRUE) != OK)
         return FN_FAILURE;
@@ -61,7 +61,7 @@ struct prc_window *window;
             prc_resize_context(&ctx);
             prc_resize_window(window, &ctx);
             
-            prc_window_title(window, "Example: Input Handling", 0, 0, PRC_ALIGN_TOP, &ctx);
+            prc_window_title(window, 0, 0, &ctx);
             
             if (wy >= window->height - 1) wy = window->height - 2;
             if (wx >= window->width - 1) wx = window->width - 2;

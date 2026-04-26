@@ -2,14 +2,14 @@
 
 int main(void)
 {
-    fnresult_t result = eg_resize_window();
+    fnresult_t result = eg_single_window();
     if (result != FN_SUCCESS)
     {
-        puts("Debug: Example failed.");
-        return 1;
+        fputs("Debug: Example failed.\n", stderr);
+        return result;
     }  
 
-    puts("Debug: Example succeeded");
+    fputs("Debug: Example succeeded.\n", stderr);
 
-    return 0;
+    return result;
 }

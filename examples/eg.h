@@ -4,13 +4,7 @@
 #include "prc/prc_window.h"
 
 /* eg_single_window.c */
-fnresult_t eg_single_window(
-    struct prc_window * win,
-    struct prc_context *ctx,
-    bool                borders,
-    bool                align,
-    bool                pad
-);
+fnresult_t eg_single_window(void);
 
 fnresult_t eg_align_window(void);
 

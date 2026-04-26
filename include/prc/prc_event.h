@@ -14,12 +14,6 @@ struct prc_generic_event
     uint32_t detail;
 };
 
-struct prc_event_buffer
-{
-    struct prc_generic_event *event;
-
-};
-
 typedef struct prc_generic_event prc_key_press_event_t;
 typedef struct prc_generic_event prc_button_press_event_t;
 

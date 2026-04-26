@@ -1,8 +1,11 @@
+#include "prc/prc_context.h"
 #include "prc/prc_event.h"
 #include "prc/prc_window.h"
+#include "prc/prc_winpool.h"
 #include "utlprc/types.h"
 
 #include <signal.h>
+#include <ncurses.h>
 #include <string.h>
 
 static uint8_t _prc_sigwinch = FALSE;
@@ -15,55 +18,96 @@ static void _eg_signal_handler(int signal)
 
 fnresult_t eg_single_window(void)
 {
-    struct prc_window *window;
-    struct prc_context ctx;
+    fnresult_t result = FN_SUCCESS;
 
-    prc_get_context(&ctx);
     signal(SIGWINCH, _eg_signal_handler);
-    noecho();
-    raw();
 
-    if (prc_create_window(&window, &ctx) != FN_SUCCESS)
+    struct prc_window *window = prc_get_freeaddr();
+    if (window == NULL)
     {
-        printf("Error: Failed to create window.");
-        return FN_FAILURE;
+        fputs("Error: Could not get a free window address.\n", stderr);
+        result = FN_FAILURE;
+        goto cleanup;
     }
-    prc_window_title(window, "Example: Input Handling",
-        0, 0, PRC_ALIGN_TOP, &ctx);
+    
+    struct prc_context ctx;
+    result = prc_get_context(&ctx);
+    if (result != FN_SUCCESS)
+    {
+        fputs("Error: Could not create context.\n", stderr);
+        goto cleanup;
+    }
+
+    if (noecho() != OK)
+    {
+        fputs("Error: noecho() failed.\n", stderr);
+        result = FN_FAILURE;
+        goto cleanup;
+    }
+
 
     if (memset(&window->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
-        return FN_FAILURE;
-    
+    {
+        fputs("Error: Could not initialize border.\n", stderr);
+        goto cleanup;
+    }
+
     window->wpad.left = 10;
     window->wpad.right = 10;
     window->wpad.top = 5;
-    window->wpad.bottom = 5;
+    window->wpad.bottom = 2;
+    window->wpad.yes = TRUE;
 
     window->walign = PRC_ALIGN_NONE;
 
-    refresh();
+    window->title = "Example: Single window";
+    window->talign = PRC_ALIGN_TOP;
 
-    prc_init_evt_buffer();
-    // struct prc_generic_event levt = {0};
-    struct prc_generic_event fevt = {0};
-    
-    fnresult_t res = FN_SUCCESS;
-    uint32_t wy = 1;
-    uint32_t wx = 1;
+    result = prc_create_window(window, &ctx);
+    if (result != FN_SUCCESS)
+    {
+        fputs("Error: Could not create window.\n", stderr);
+        goto cleanup;
+    }
 
     if (nodelay(window->win, TRUE) != OK)
-        return FN_FAILURE;
-
-    while (TRUE)
     {
-        if (_prc_sigwinch) {
+        fputs("Error: nodelay() failed.\n", stderr);
+        result = FN_FAILURE;
+        goto cleanup;
+    }
+
+    result = prc_draw_window_border(window);
+    if (result != FN_SUCCESS)
+    {
+        fputs("Error: Could not draw window border.\n", stderr);
+        goto cleanup;
+    }
+
+    result = prc_window_title(window, 0, 0, &ctx);
+    if (result != FN_SUCCESS)
+    {
+        fputs("Error: Could not draw window's title.\n", stderr);
+        goto cleanup;
+    }
+
+    uint16_t wy = 1;
+    uint16_t wx = 1;
+
+    int16_t c = '\0';
+    struct prc_generic_event fevt;
+    do
+    {
+        if (_prc_sigwinch) 
+        {
+
             _prc_sigwinch = FALSE;
             
-            resizeterm(0, 0); 
             prc_resize_context(&ctx);
             prc_resize_window(window, &ctx);
             
-            prc_window_title(window, "Example: Input Handling", 0, 0, PRC_ALIGN_TOP, &ctx);
+            prc_draw_window_border(window);
+            prc_window_title(window, 0, 0, &ctx);
             
             if (wy >= window->height - 1) wy = window->height - 2;
             if (wx >= window->width - 1) wx = window->width - 2;
@@ -73,164 +117,75 @@ fnresult_t eg_single_window(void)
             wrefresh(window->win);
         }
 
-        if (prc_poll_for_event(window) != FN_SUCCESS)
-        {
-            res = FN_FAILURE;
-            break;
-        }
+        prc_poll_for_event(window);
 
-        while (prc_get_first_event(&fevt) == FN_SUCCESS)
+        while ((result = prc_get_first_event(&fevt)) == FN_SUCCESS)
         {
-            if (fevt.detail == 'q' || fevt.detail == 'Q')
+            c = fevt.detail;
+            if (c == KEY_RESIZE)
             {
-                res = FN_SUCCESS;
-                goto cleanup;
+                prc_resize_context(&ctx);
+                prc_resize_window(window, &ctx);
+                
+                prc_draw_window_border(window);
+                prc_window_title(window, 0, 0, &ctx);
+                
+                if (wy >= window->height - 1) wy = window->height - 2;
+                if (wx >= window->width - 1) wx = window->width - 2;
+
+                clearok(stdscr, TRUE);
+                refresh();
+                wrefresh(window->win);
             }
 
-            if (fevt.detail == '\n' || fevt.detail == '\r' || fevt.detail == 10 || fevt.detail == 13)
+            if (c == '\n' || c == '\r' || c == 10 || c == 13)
             {
                 wx = 1;
-                wy++;
+                wmove(window->win, ++wy, wx);
             }
             else 
             {
                 if (wx >= window->width - 1)
                 {
                     wx = 1;
-                    wy++;
+                    ++wy;
                 }
 
                 if (wy >= window->height - 1) 
                     break;
 
-                mvwaddch(window->win, wy, wx++, fevt.detail);
-            }
-
-            prc_use_event();
-        }
-
-        wrefresh(window->win);
-        wtimeout(window->win, 10);
-    }
-
-    cleanup:
-        prc_destroy_window(window, &ctx);
-        prc_destroy_context(&ctx);
-        prc_kill_mother();
-
-    return res;
-    
-}
-
-fnresult_t eg_align_window(void)
-{
-    struct prc_window *window;
-    struct prc_context ctx;
-
-    prc_get_context(&ctx);
-    signal(SIGWINCH, _eg_signal_handler);
-    noecho();
-    raw();
-
-    if (prc_create_window(&window, &ctx) != FN_SUCCESS)
-    {
-        printf("Error: Failed to create window.");
-        return FN_FAILURE;
-    }
-    prc_window_title(window, "Example: Input Handling",
-        0, 0, PRC_ALIGN_TOP, &ctx);
-
-    if (memset(&window->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
-        return FN_FAILURE;
-    
-    window->wpad.left = 10;
-    window->wpad.right = 10;
-    window->wpad.top = 5;
-    window->wpad.bottom = 5;
-
-    window->walign = PRC_ALIGN_NONE;
-
-    if (prc_align_window(window, window->parent, &ctx,
-            PRC_ALIGN_TOPLEFT, NULL) != FN_SUCCESS)
-            return FN_FAILURE;
-
-    refresh();
-
-    prc_init_evt_buffer();
-    // struct prc_generic_event levt = {0};
-    struct prc_generic_event fevt = {0};
-    
-    fnresult_t res = FN_SUCCESS;
-    uint32_t wy = 1;
-    uint32_t wx = 1;
-
-    if (nodelay(window->win, TRUE) != OK)
-        return FN_FAILURE;
-
-    while (TRUE)
-    {
-        if (_prc_sigwinch) {
-            _prc_sigwinch = FALSE;
-            
-            resizeterm(0, 0); 
-            prc_resize_context(&ctx);
-            prc_resize_window(window, &ctx);
-            
-            if (wy >= window->height - 1)
-                wy = window->height - 2;
-
-            if (wx >= window->width - 1)
-                wx = window->width - 2;
-
-            clearok(stdscr, TRUE);
-            refresh();
-            wrefresh(window->win);
-        }
-
-        if (prc_poll_for_event(window) != FN_SUCCESS)
-        {
-            res = FN_FAILURE;
-            break;
-        }
-
-        while (prc_get_first_event(&fevt) == FN_SUCCESS)
-        {
-            if (fevt.detail == 'q' || fevt.detail == 'Q')
-            {
-                res = FN_SUCCESS;
-                goto cleanup;
-            }
-
-            if (fevt.detail == '\n' || fevt.detail == '\r' || fevt.detail == 10 || fevt.detail == 13)
-            {
-                wx = 1;
-                wy++;
-            }
-            else 
-            {
-                if (wx >= window->width - 1)
+                if (mvwaddch(window->win, wy, wx++, c) != OK)
                 {
-                    wx = 1;
-                    wy++;
+                    fputs("Error: Could not add character.", stderr);
+                    result = FN_FAILURE;
+                    goto cleanup;
                 }
-
-                if (wy >= window->height - 1) 
-                    break;
-
-                mvwaddch(window->win, wy, wx++, fevt.detail);
             }
 
             prc_use_event();
         }
 
-        wrefresh(window->win);
+        result = wnoutrefresh(window->win);
+        if (result != OK)
+        {
+            fputs("Error: Could not refresh window.\n", stderr);
+            goto cleanup;
+        }
+
+        result = doupdate();
+        if (result != OK)
+        {
+            fputs("Error: Could not update physical window state.\n", stderr);
+            goto cleanup;
+        }
+
         wtimeout(window->win, 10);
-    }
+    } while(c != 'Q' && c != 'q');
 
     cleanup:
         prc_destroy_window(window, &ctx);
         prc_destroy_context(&ctx);
         prc_kill_mother();
 
-    return res;
+    return result;
 }

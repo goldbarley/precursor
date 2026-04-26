@@ -45,30 +45,18 @@ struct prc_window
 };
 
 fnresult_t prc_create_window(
-    struct prc_window **    window,
-    uint16_t                height,
-    uint16_t                width,
-    uint16_t                y,
-    uint16_t                x,
+    struct prc_window *     window,
     struct prc_context *    ctx
 );
 
 fnresult_t prc_create_focused_derwin(
-    struct prc_window **    window,
-    uint16_t                height,
-    uint16_t                width,
-    uint16_t                y,
-    uint16_t                x,
+    struct prc_window *     window,
     struct prc_context *    ctx
 );
 
 fnresult_t prc_create_derwin(
-    struct prc_window **    window,
+    struct prc_window *     window,
     struct prc_window *     parent,
-    uint16_t                height,
-    uint16_t                width,
-    uint16_t                y,
-    uint16_t                x,
     struct prc_context *    ctx
 );
 
@@ -83,10 +71,8 @@ fnresult_t prc_draw_window_border(
 
 fnresult_t prc_window_title(
     struct prc_window *             window,
-    const char *                    title,
     const uint16_t                  y,
     const uint16_t                  x,
-    enum prc_align                  align,
     struct prc_context *restrict    ctx
 );
 

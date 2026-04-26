@@ -33,6 +33,7 @@ void _prc_init_mother(void)
 
 void _prc_resize_mother(void)
 {
+    resizeterm(0, 0);
     getmaxyx(_mother.mwin.win, _mother.mwin.height, _mother.mwin.width);
     _mother.mwin.y = 0;
     _mother.mwin.x = 0;

@@ -6,7 +6,7 @@ struct _prc_event_buffer
     struct prc_generic_event buffer[PRC_MAX_EVENT_COUNT];
     uint16_t head;
     uint16_t tail;
-    uint8_t init : 1;
+    uint8_t init;
 };
 
 static struct _prc_event_buffer _event_buffer;
@@ -27,7 +27,6 @@ fnresult_t prc_use_event(void)
         return FN_NO_ARGS;
     
     _event_buffer.tail = (_event_buffer.tail + 1) & (PRC_MAX_EVENT_COUNT - 1);
-
     return FN_SUCCESS;
 }
 
@@ -62,9 +61,12 @@ fnresult_t _prc_fill_evt_buffer(struct prc_window *window)
     int32_t c;
     while ((c = wgetch(window->win)) != ERR)
     {
+        if (c == KEY_RESIZE)
+            continue;
+
         if (_prc_allocto_evt_buffer(PRC_EVENT_KEY_PRESS, c)
             != FN_SUCCESS)
-            return FN_FAILURE;
+            break;
     }
 
     return FN_SUCCESS;

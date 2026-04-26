@@ -16,9 +16,11 @@ fnresult_t _prc_init_winpool(void)
     if (_window_pool.init)
         return FN_SUCCESS;
 
-    if (memset(_window_pool.windows, 0, PRC_MAX_WINDOW_COUNT)
-        == NULL)
+    if (memset(_window_pool.windows, 0,
+        PRC_MAX_WINDOW_COUNT * sizeof(struct prc_window)) == NULL)
         return FN_FAILURE;
+    
+    _window_pool.freemask = UINT32_MAX;
 
     _window_pool.init = TRUE;
 
@@ -34,7 +36,12 @@ struct prc_window *prc_get_freeaddr(void)
     if (fm == 0)
         return NULL;
 
-    return &_window_pool.windows[CTZ(fm)];
+    uint32_t fidx = CTZ(fm);
+    PRC_MARK_USED(fm, fidx);
+
+    _window_pool.freemask = fm;
+
+    return &_window_pool.windows[fidx];
 }
 
 void prc_dalfrom_winpool(struct prc_window *window)

@@ -1,5 +1,6 @@
 #include "prc/prc_event.h"
 #include "prc/prc_window.h"
+#include "prc/prc_winpool.h"
 #include "utlprc/types.h"
 
 #include <signal.h>
@@ -7,7 +8,7 @@
 
 static uint8_t _prc_sigwinch = FALSE;
 
-void _eg_signal_handler(int signal)
+static void _eg_signal_handler(int signal)
 {
     (void) signal;
     _prc_sigwinch = TRUE;
@@ -15,22 +16,20 @@ void _eg_signal_handler(int signal)
 
 fnresult_t eg_create_derwin(void)
 {
-    struct prc_window *window;
-    struct prc_window *dwindow;
+    fnresult_t res = FN_SUCCESS;
+
+    struct prc_window *window = prc_get_freeaddr();
+    if (window == NULL)
+        return FN_FAILURE;
+    struct prc_window *dwindow = prc_get_freeaddr();
+    if (window == NULL)
+        return FN_FAILURE;
     struct prc_context ctx;
 
     prc_get_context(&ctx);
     signal(SIGWINCH, _eg_signal_handler);
     noecho();
     raw();
-
-    if (prc_create_window(&window, &ctx) != FN_SUCCESS)
-    {
-        printf("Error: Failed to create window.");
-        return FN_FAILURE;
-    }
-    prc_window_title(window, "Example: Input Handling",
-        0, 0, PRC_ALIGN_TOP, &ctx);
 
     if (memset(&window->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
         return FN_FAILURE;
@@ -43,26 +42,41 @@ fnresult_t eg_create_derwin(void)
 
     window->walign = PRC_ALIGN_NONE;
 
-    if (prc_draw_window_border(window) != FN_SUCCESS)
-        return FN_FAILURE;
+    window->title = "Example: Derived windows";
+    window->talign = PRC_ALIGN_TOP;
 
-    if (prc_create_window(&dwindow, 
-        5, 5, 0, 0,&ctx) != FN_SUCCESS)
+    res = prc_create_window(window, &ctx);
+    if (res != FN_SUCCESS)
     {
         printf("Error: Failed to create window.");
         return FN_FAILURE;
     }
+    
+    res = prc_window_title(window, 0, 0, &ctx);
+    if (res != FN_SUCCESS)
+        return FN_FAILURE;
+
+    res = prc_draw_window_border(window);
+    if (res != FN_SUCCESS)
+        return FN_FAILURE;
 
     if (memset(&dwindow->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
         return FN_FAILURE;
     
     dwindow->wpad.left = 5;
     dwindow->wpad.right = 5;
-    dwindow->wpad.top = 2;
-    dwindow->wpad.bottom = 2;
+    dwindow->wpad.top = 5;
+    dwindow->wpad.bottom = 3;
     dwindow->wpad.yes = FALSE;
 
     dwindow->walign = PRC_ALIGN_BOTTOM;
+
+    res = prc_create_window(dwindow, &ctx);
+    if (res != FN_SUCCESS)
+    {
+        printf("Error: Failed to create window.");
+        return FN_FAILURE;
+    }
 
     refresh();
 
@@ -70,9 +84,8 @@ fnresult_t eg_create_derwin(void)
     // struct prc_generic_event levt = {0};
     struct prc_generic_event fevt = {0};
     
-    fnresult_t res = FN_SUCCESS;
-    uint32_t wy = 1;
-    uint32_t wx = 1;
+    uint16_t wy = 1;
+    uint16_t wx = 1;
 
     if (nodelay(window->win, TRUE) != OK)
         return FN_FAILURE;
@@ -86,7 +99,7 @@ fnresult_t eg_create_derwin(void)
             prc_resize_context(&ctx);
             prc_resize_window(window, &ctx);
             
-            prc_window_title(window, "Example: Input Handling", 0, 0, PRC_ALIGN_TOP, &ctx);
+            prc_window_title(window, 0, 0, &ctx);
             
             if (wy >= window->height - 1) wy = window->height - 2;
             if (wx >= window->width - 1) wx = window->width - 2;

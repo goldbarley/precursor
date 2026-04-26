@@ -1,13 +1,16 @@
 #include "prc/prc_context.h"
 #include "prc/prc_window.h"
 #include "prc/prc_event.h"
+#include "prc/prc_winpool.h"
+#include "utlprc/types.h"
 
+#include <ncurses.h>
 #include <signal.h>
 #include <string.h>
 
 static uint8_t _prc_sigwinch = FALSE;
 
-void _eg_signal_handler(int signal)
+static void _eg_signal_handler(int signal)
 {
     (void) signal;
     _prc_sigwinch = TRUE;
@@ -15,7 +18,9 @@ void _eg_signal_handler(int signal)
 
 fnresult_t eg_resize_window(void)
 {
-    struct prc_window *window;
+    fnresult_t res = FN_SUCCESS;
+
+    struct prc_window *window = prc_get_freeaddr();
     struct prc_context ctx;
 
     prc_get_context(&ctx);
@@ -23,17 +28,6 @@ fnresult_t eg_resize_window(void)
     noecho();
     raw();
 
-    if (prc_create_window(&window, &ctx) != FN_SUCCESS)
-    {
-        printf("Error: Failed to create window.");
-        return FN_FAILURE;
-    }
-    prc_window_title(window, "Example: Input Handling",
-        0, 0, PRC_ALIGN_TOP, &ctx);
-
-    if (memset(&window->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
-        return FN_FAILURE;
-    
     window->wpad.left = 10;
     window->wpad.right = 10;
     window->wpad.top = 5;
@@ -41,29 +35,70 @@ fnresult_t eg_resize_window(void)
 
     window->walign = PRC_ALIGN_NONE;
 
+    window->title = "Example: Resizing windows";
+    window->talign = PRC_ALIGN_TOP;
+
+    res = prc_create_window(window, &ctx);
+    if (res != FN_SUCCESS)
+    {
+        fputs("Error: Failed to create window.", stderr);
+        return res;
+    }
+
+    res = prc_draw_window_border(window);
+    if (res != FN_SUCCESS)
+        goto cleanup;
+
+    res = prc_window_title(window, 0, 0, &ctx);
+    if (res != FN_SUCCESS)
+        goto cleanup;
+
+    if (memset(&window->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
+    {
+        res = FN_FAILURE;
+        goto cleanup;
+    }
+
     refresh();
+    wrefresh(window->win);
 
     prc_init_evt_buffer();
     // struct prc_generic_event levt = {0};
     struct prc_generic_event fevt = {0};
     
-    fnresult_t res = FN_SUCCESS;
-    uint32_t wy = 1;
-    uint32_t wx = 1;
+    uint16_t wy = 1;
+    uint16_t wx = 1;
 
     if (nodelay(window->win, TRUE) != OK)
-        return FN_FAILURE;
+    {
+        res = FN_FAILURE;
+        goto cleanup;
+    }
+
+
+    // while (TRUE)
+    // {
+    //     uint8_t c = wgetch(window->win);
+    //     if (c == 'q' || c == 'Q')
+    //     {
+    //         res = FN_SUCCESS;
+    //         goto cleanup;
+    //     }
+    //     mvwaddch(window->win, wy, wx++, c);
+    //     wtimeout(window->win, 10);
+    // }
 
     while (TRUE)
     {
-        if (_prc_sigwinch) {
+        if (_prc_sigwinch) 
+        {
             _prc_sigwinch = FALSE;
             
-            resizeterm(0, 0); 
             prc_resize_context(&ctx);
             prc_resize_window(window, &ctx);
             
-            prc_window_title(window, "Example: Input Handling", 0, 0, PRC_ALIGN_TOP, &ctx);
+            prc_draw_window_border(window);
+            prc_window_title(window, 0, 0, &ctx);
             
             if (wy >= window->height - 1) wy = window->height - 2;
             if (wx >= window->width - 1) wx = window->width - 2;
@@ -73,9 +108,10 @@ fnresult_t eg_resize_window(void)
             wrefresh(window->win);
         }
 
-        if (prc_poll_for_event(window) != FN_SUCCESS)
+        res = prc_poll_for_event(ctx.cwin);
+        if (res != FN_SUCCESS)
         {
-            res = FN_FAILURE;
+            goto cleanup;
             break;
         }
 
@@ -83,11 +119,13 @@ fnresult_t eg_resize_window(void)
         {
             if (fevt.detail == 'q' || fevt.detail == 'Q')
             {
+                prc_use_event();
                 res = FN_SUCCESS;
                 goto cleanup;
             }
 
-            if (fevt.detail == '\n' || fevt.detail == '\r' || fevt.detail == 10 || fevt.detail == 13)
+            if (fevt.detail == '\n' || fevt.detail == '\r' ||
+                fevt.detail == 10 || fevt.detail == 13)
             {
                 wx = 1;
                 wy++;
@@ -106,7 +144,9 @@ fnresult_t eg_resize_window(void)
                 mvwaddch(window->win, wy, wx++, fevt.detail);
             }
 
-            prc_use_event();
+            res = prc_use_event();
+            if (res != FN_SUCCESS)
+                goto cleanup;
         }
 
         wrefresh(window->win);
