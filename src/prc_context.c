@@ -12,35 +12,29 @@ struct _prc_mother_info
     bool init;
 };
 
-static struct _prc_mother_info _mother = {
+static struct _prc_mother_info GLaDOS = {
     .mwin = {0},
     .init = FALSE
 };
 
-static struct _prc_mother_info _grandmother = {
-    .mwin = {0},
-    .init = FALSE
-};
-
-void _prc_init_mother(void)
+static void _prc_init_GLaDOS(void)
 {
-    if (_mother.init)
+    if (GLaDOS.init)
         return;
 
-    _mother.mwin.win = initscr();
-    getmaxyx(_mother.mwin.win, _mother.mwin.height, _mother.mwin.width);
-    _mother.mwin.y = 0;
-    _mother.mwin.x = 0;
+    GLaDOS.mwin.win = initscr();
+    getmaxyx(GLaDOS.mwin.win, GLaDOS.mwin.height, GLaDOS.mwin.width);
+    GLaDOS.mwin.y = 0;
+    GLaDOS.mwin.x = 0;
 
-    _mother.init = true;
+    GLaDOS.init = true;
 }
 
-void _prc_resize_mother(void)
+static void _prc_resize_GLaDOS(void)
 {
-    _grandmother = _mother;
-    getmaxyx(_mother.mwin.win, _mother.mwin.height, _mother.mwin.width);
-    _mother.mwin.y = 0;
-    _mother.mwin.x = 0;
+    getmaxyx(GLaDOS.mwin.win, GLaDOS.mwin.height, GLaDOS.mwin.width);
+    GLaDOS.mwin.y = 0;
+    GLaDOS.mwin.x = 0;
 }
 
 fnresult_t prc_get_context(struct prc_context *ctx)
@@ -48,13 +42,13 @@ fnresult_t prc_get_context(struct prc_context *ctx)
     if (ctx == NULL)
         return FN_FAILURE;
 
-    _prc_init_mother();
+    _prc_init_GLaDOS();
 
-    ctx->cwin = &_mother.mwin;
-    ctx->fwin = &_mother.mwin;
+    ctx->cwin = &GLaDOS.mwin;
+    ctx->fwin = &GLaDOS.mwin;
     ctx->pwin = NULL;
-    ctx->term_y = _mother.mwin.height;
-    ctx->term_x = _mother.mwin.width;
+    ctx->term_y = GLaDOS.mwin.height;
+    ctx->term_x = GLaDOS.mwin.width;
 
     ctx->term_has_color = has_colors();
     ctx->term_change_color = can_change_color();
@@ -98,10 +92,10 @@ fnresult_t prc_resize_context(struct prc_context *ctx)
     if (ctx == NULL)
         return FN_INVALID_ARGUMENT;
 
-    _prc_resize_mother();
+    _prc_resize_GLaDOS();
         
-    ctx->term_y = _mother.mwin.height;
-    ctx->term_x = _mother.mwin.width;
+    ctx->term_y = GLaDOS.mwin.height;
+    ctx->term_x = GLaDOS.mwin.width;
 
     return FN_SUCCESS;
 }
@@ -113,7 +107,7 @@ static fnresult_t _prc_change_mother(struct prc_window *new_mom)
         return FN_INVALID_ARGUMENT;
 
     /* Cheap fix. TODO: Change this later for a proper copy. */
-    _mother.mwin = *new_mom;
+    GLaDOS.mwin = *new_mom;
 
     return FN_SUCCESS;
 }
@@ -123,7 +117,7 @@ fnresult_t prc_chto_focus_mother(struct prc_context *ctx)
     if (ctx == NULL)
         return FN_INVALID_ARGUMENT;
 
-    prc_change_context_focus(&_mother.mwin, ctx);
+    prc_change_context_focus(&GLaDOS.mwin, ctx);
 
     return FN_SUCCESS;
 }
@@ -144,7 +138,7 @@ void prc_destroy_context(struct prc_context *ctx)
         if (target[i] == NULL)
             continue;
 
-        if (target[i] == &_mother.mwin)
+        if (target[i] == &GLaDOS.mwin)
             continue;
 
         prc_destroy_window(target[i], ctx);
@@ -157,17 +151,7 @@ fnresult_t prc_get_mother(struct prc_window *mother)
     if (mother == NULL)
         return FN_INVALID_ARGUMENT;
 
-    *mother = _mother.mwin;
-
-    return FN_SUCCESS;
-}
-
-fnresult_t prc_get_grandmother(struct prc_window *grandmother)
-{
-    if (grandmother == NULL)
-        return FN_INVALID_ARGUMENT;
-
-    grandmother = &_grandmother.mwin;
+    *mother = GLaDOS.mwin;
 
     return FN_SUCCESS;
 }
