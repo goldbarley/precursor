@@ -23,10 +23,21 @@
 
 #define PRC_MAX_WINDOW_COUNT (32U)
 
+#define anakin_skywalker(p) (prc_kill_all_children(p))
+
 struct prc_window *prc_get_freeaddr(void);
 
 void prc_dalfrom_winpool(
     struct prc_window *window
+);
+
+void prc_kill_all_children(
+    struct prc_window *parent
+);
+
+fnresult_t prc_get_active_windows(
+    struct prc_window **actwins,
+    uint32_t *          count
 );
 
 #endif /* PRC_WINSTACK_H */

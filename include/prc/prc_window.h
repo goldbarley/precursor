@@ -42,6 +42,7 @@ struct prc_window
     uint16_t                width;
     uint16_t                y;
     uint16_t                x;
+    uint8_t                 derived;
 };
 
 fnresult_t prc_create_window(

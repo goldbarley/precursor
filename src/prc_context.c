@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <menu.h>
+#include <string.h>
 
 #include "prc/prc_context.h"
 #include "prc/prc_window.h"
@@ -133,27 +134,19 @@ void prc_destroy_context(struct prc_context *ctx)
         ctx->pwin
     };
 
+    if (memset(ctx, 0, sizeof(struct prc_context)) == NULL)
+        return;
+
     for (uint8_t i = 0; i < 3; ++i)
     {
-        if (target[i] == NULL)
-            continue;
-
-        if (target[i] == &GLaDOS.mwin)
-            continue;
-
-        prc_destroy_window(target[i], ctx);
-        
+        if (target[i] != NULL && target[i] != &GLaDOS.mwin)
+            prc_destroy_window(target[i], NULL);
     }
 }
 
-fnresult_t prc_get_mother(struct prc_window *mother)
+struct prc_window *prc_get_mother(void)
 {
-    if (mother == NULL)
-        return FN_INVALID_ARGUMENT;
-
-    *mother = GLaDOS.mwin;
-
-    return FN_SUCCESS;
+    return &GLaDOS.mwin;
 }
 
 void prc_kill_mother(void)

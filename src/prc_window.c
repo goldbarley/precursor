@@ -122,8 +122,7 @@ void prc_destroy_window(
     if (window->win == stdscr)
         return;
 
-    delwin(window->win);
-    prc_dalfrom_winpool(window);
+    prc_kill_all_children(window);
 
     if (ctx == NULL)
         return;
@@ -133,6 +132,8 @@ void prc_destroy_window(
 
     if (ctx->pwin == window)
         ctx->pwin = NULL;
+
+    prc_dalfrom_winpool(window);
 }
 
 fnresult_t prc_window_title(
@@ -319,10 +320,6 @@ fnresult_t prc_resize_window(
 {
     if (window == NULL || ctx == NULL || window->win == stdscr)
         return FN_INVALID_ARGUMENT;
-
-    const struct prc_window mother = {0};
-    if (prc_get_mother((struct prc_window *) &mother) != FN_SUCCESS)
-        return FN_FAILURE;
 
     if (_prc_get_window_info(window) != FN_SUCCESS)
         return FN_FAILURE;

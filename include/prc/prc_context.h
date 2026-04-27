@@ -44,9 +44,7 @@ void prc_destroy_context(
     struct prc_context *ctx
 );
 
-fnresult_t prc_get_mother(
-    struct prc_window *mother
-);
+struct prc_window *prc_get_mother(void);
 
 fnresult_t prc_get_grandmother(
     struct prc_window *grandmother
