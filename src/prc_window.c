@@ -100,6 +100,10 @@ fnresult_t prc_create_derwin(
         return FN_INVALID_ARGUMENT;
 
     window->parent = parent;
+
+    if (_prc_get_window_info(window)
+        != FN_SUCCESS)  
+        return FN_FAILURE;
     
     window->win =
         derwin(window->parent->win, 
