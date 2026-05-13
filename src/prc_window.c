@@ -64,6 +64,7 @@ fnresult_t prc_create_window(
         return FN_INVALID_ARGUMENT;
 
     window->parent = ctx->cwin;
+    window->derived = FALSE;
 
     if (_prc_get_window_info(window)
         != FN_SUCCESS)  
@@ -100,6 +101,7 @@ fnresult_t prc_create_derwin(
         return FN_INVALID_ARGUMENT;
 
     window->parent = parent;
+    window->derived = TRUE;
 
     if (_prc_get_window_info(window)
         != FN_SUCCESS)  
@@ -108,7 +110,9 @@ fnresult_t prc_create_derwin(
     window->win =
         derwin(window->parent->win, 
             window->height, window->width, window->y, window->x);
-    
+    if (window->win == NULL)
+        return FN_FAILURE;
+
     if (prc_change_context_focus(window, ctx) != FN_SUCCESS)
             return FN_FAILURE;
 
@@ -270,14 +274,20 @@ fnresult_t prc_get_padded_wdesc(
     if (ww < (pl + pr) || wh < (pt + pb))
         return FN_FAILURE;
 
-    window->x = (uint32_t) getbegx(fwin) + pl;
-    ww -= pl + pr;
+    if (!window->derived)
+    {
+        window->x = (uint32_t) getbegx(fwin) + pl;
+        window->y = (uint32_t) getbegy(fwin) + pt;
+    }
+    else
+    {
+        window->x = pl;
+        window->y = pt;
+    }
 
-    window->y = (uint32_t) getbegy(fwin) + pt;
-    wh -= pt + pb;
-
-    window->height = wh;
-    window->width = ww; 
+    window->height = wh - (pt + pb);
+    window->width = ww - (pl + pr);
+        
     
     return FN_SUCCESS;
 }

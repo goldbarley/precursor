@@ -1,4 +1,5 @@
 .clangd
-.venv
+*venv*
 
 build
+compile_commands.json

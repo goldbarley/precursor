@@ -3,6 +3,7 @@
 #include "utlprc/math.h"
 #include "utlprc/types.h"
 
+#include <limits.h>
 #include <string.h>
 
 struct _prc_winpool
@@ -37,10 +38,9 @@ struct prc_window *prc_get_freeaddr(void)
     _prc_init_winpool();
 
     uint32_t fm = _window_pool.freemask;
-
     if (fm == 0)
         return NULL;
-
+    
     uint32_t fidx = CTZ(fm);
     PRC_MARK_USED(fm, fidx);
 
